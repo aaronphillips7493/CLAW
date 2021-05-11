@@ -9,7 +9,9 @@ https://github.com/aaronphillips7493/long-read-chloroplast-assembly
 e.g. for me, I had long reads from four populations of O. australiensis, and the fastq read files were named as follows:
 
 Oaustraliensis-300131-flowcell-1-SQK-LSK109_guppy303_all.fastq,
+
 Oaustraliensis-keepriver-flowcell-2-SQK-LSK109_guppy303_all.fastq,
+
 Oaustraliensis_keepriver_1g_SQK-LSK109_guppy303_all.fastq,
 
 etc...
@@ -17,7 +19,9 @@ etc...
 So, to the SAMPLES section, I add:
 
 "Oaustraliensis-300131-flowcell-1-SQK-LSK109",
+
 "Oaustraliensis-keepriver-flowcell-2-SQK-LSK109",
+
 "Oaustraliensis_keepriver_1g_SQK-LSK109",
 
 etc...  
