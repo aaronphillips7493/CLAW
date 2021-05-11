@@ -4,7 +4,7 @@ Found at:
 https://github.com/aaronphillips7493/long-read-chloroplast-assembly
 ###
 
-1.Add your unique sample prefix(s) to the SAMPLES section of the Snakefile. 
+1. Add your unique sample prefix(s) to the SAMPLES section of the Snakefile. 
 e.g. for me, I had long reads from four populations of O. australiensis, and the fastq read files were named as follows:
 Oaustraliensis-300131-flowcell-1-SQK-LSK109_guppy303_all.fastq,
 Oaustraliensis-keepriver-flowcell-2-SQK-LSK109_guppy303_all.fastq,
