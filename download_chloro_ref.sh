@@ -1,3 +1,4 @@
+#must be run in the directory containing the downloaded chloroplast genome; DO NOT HAVE ANY OTHER .fa FILES IN THIS DIRECTORY
 declare -a arr=("NC_041421.1")
 
 for i in "${arr[@]}"
