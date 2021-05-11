@@ -28,14 +28,18 @@ etc...
 
 2. The first step of the pipeline converts a guppy base-called fastq file with the suffix *_guppy303_all.fastq to a fastq.gz file. 
 Have your ONT long read fastq file saved in a directory called backup/{prefix}/, where prefix is the prefix you saved to the SAMPLES list.  
+
 If you already have your ONT long reads saved as *_guppy303_all.fastq.gz, move them to a directory called working_raw_base_calls 
 (need to make pipeline amenable to PacBio reads too; need to make the SAMPLES bit more general [no need to add your own prefix to SAMPLES] and remove the "*_guppy303_all.fastq" thing)
 
 3. open script "download_chloro_ref.sh" in a text editor
 
 4. find your chloroplast genome(s) of interest in NCBI and add their NCBI accession numbers to the array in "download_chloro_ref.sh"
+
 e.g. declare -a arr=("NC_041421.1")
+
 If you have multiple target chlorplast genomes (I used 22 rice chloroplast genomes for the rice assembly):
+
 declare -a arr=("KF359913.1"    "KJ830774.1"    "KM881634.1"    "KT992850.1"    "MG383937.1"    "KF359912.1"    "KM881640.1"    "KF359914.1"\
 	"KF359915.1"    "KF359918.1"    "KM881641.1"    "JN005831.1"    "KF359921.1"    "KU179220.1"    "KM881643.1"    "KM103375.1"    "KF359911.1"    \
 	"KF359919.1"    "JN005832.1"    "KM103369.1"    "AP006728.1"    "AY522329.1")
