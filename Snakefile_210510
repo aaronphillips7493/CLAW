@@ -1,0 +1,239 @@
+MAX_THREADS = 32
+N_BENCHMARKS = 1
+
+SAMPLES=[
+#"Oaustraliensis-300131-flowcell-1-SQK-LSK109",
+#"Oaustraliensis-300134-flowcell1-SQK-LSK109",
+#"Oaustraliensis-300137-flowcell1-SQK-LSK109",
+#"Oaustraliensis_keepriver_1g_SQK-LSK109",
+#"Oaustraliensis-keepriver-flowcell-2-SQK-LSK109",
+#"Oaustraliensis-keepriver-flowcell-3-SQK-LSK109",
+#"Omeridionalis-BH-flowcell-1-SQK-LSK109",
+#"Osativa_Java_30g_SQK-LSK109",
+#"Oaustraliensis_keepriver_flowcell1-2-3",
+"Plantago_pacbio"
+]
+
+singularity:
+        "docker://continuumio/miniconda3:4.5.12"
+include:
+        "rules/misc.smk",
+
+#localrules:
+#	all,
+
+rule all:
+	input:
+		expand("working_raw_base_calls/{sample}_guppy303_all.fastq.gz",
+			sample=SAMPLES,
+			),
+#		expand("nanoplot/{sample}_nanoplots",
+#			sample=SAMPLES,
+#			),
+		expand("nanolysed/{sample}.fastq.gz",
+			sample=SAMPLES,
+			),
+		expand("filtered/{sample}_trimmed_filtered.fastq.gz",
+			sample=SAMPLES,
+			),
+#		expand("filtered/{sample}_nanoplots",
+#			sample=SAMPLES,
+#			),
+		expand("chloro_assembly/{sample}_chloro_mapped_reads.sam",
+			sample=SAMPLES,
+			),
+		expand("chloro_assembly/{sample}_chloro_only_mapped_reads.sam",
+			sample=SAMPLES,
+			),
+		expand("mito_assembly/{sample}_OsJap_mito_mapped_reads.sam",
+			sample=SAMPLES,
+			),
+		expand("mito_assembly/{sample}_OsJap_mito_only_mapped_reads.sam",
+			sample=SAMPLES,
+			),
+		expand("chloro_assembly/{sample}_chloro_read_names.txt",
+			sample=SAMPLES,
+			),
+		expand("mito_assembly/{sample}_OsJap_mito_read_names.txt",
+			sample=SAMPLES,
+			),
+		expand("chloro_assembly/{sample}_unique_chloro_read_names.txt",
+			sample=SAMPLES,
+			),
+		expand("mito_assembly/{sample}_unique_OsJap_mito_read_names.txt",
+			sample=SAMPLES,
+			),
+		expand("chloro_assembly/{sample}_chloro_reads.fastq",
+			sample=SAMPLES,
+			),
+		expand("mito_assembly/{sample}_OsJap_mito_reads.fastq",
+			sample=SAMPLES,
+			),
+#		expand("{genome}_assembly/nanoplots/{sample}",
+#			sample=SAMPLES,
+#			genome=["chloro","mito"],
+#			),
+#		expand("chloro_assembly/raw_reads/asm-{asm}_ovlp-{overlap}/{sample}_flye_assembly/assembly.fasta",
+#			asm=["50","100","300"],
+#			overlap=["5000","10000"],
+#			sample=SAMPLES,
+#			),
+		expand("mito_assembly/raw_reads/asm-{asm}_ovlp-{overlap}/{sample}_flye_assembly/assembly.fasta",
+			asm=["50","100","300"],
+			overlap=["5000","10000"],
+			sample=SAMPLES,
+			),
+#		expand("mito_assembly/raw_reads/unicycler/{sample}_unicycler_assembly/assembly.fasta",
+		expand("mito_assembly/raw_reads/unicycler/{sample}_filtered_unicycler_assembly/assembly.fasta",
+			sample=SAMPLES,
+			),
+
+rule fastq_to_gz:
+	input:
+		"backup/{prefix}/{prefix}_guppy303_all.fastq"
+	output:
+		"working_raw_base_calls/{prefix}_guppy303_all.fastq.gz"
+	conda:
+                "envs/default.yml"
+	threads:
+		MAX_THREADS
+	shell:
+		"""
+		pigz --stdout --best --processes {threads} {input} > {output}
+		"""
+
+#rule nanoplot:
+#	input:
+#		"working_raw_base_calls/{prefix}_guppy303_all.fastq.gz"
+#	output:
+#		directory("nanoplot/{prefix}_nanoplots")
+#	conda:
+#		"envs/default.yml"
+#	shell:
+#		"""
+#	NanoPlot --fastq {input} -o {output}
+#		"""
+
+#rule remove_control_DNA:
+#	input:
+#		"working_raw_base_calls/{prefix}_guppy303_all.fastq.gz"
+#	output:
+#		"nanolysed/{prefix}.fastq.gz"
+#	conda:
+#		"envs/remove_control_DNA.yml"
+#	shell:
+#		"""
+#		gunzip -c {input} | NanoLyse -r reference/DNA_CS.fasta | gzip > {output} 
+#		"""
+
+#replaces the porechop removal of adapters as it is faster to just trim the first and last 200bp from reads than to use Porechop to do the same thing 
+rule quality_filtering:
+#	input:
+#		"nanolysed/{prefix}.fastq.gz"
+#	output:
+#		"filtered/{prefix}_trimmed_filtered.fastq.gz",
+#	conda:
+#		"envs/nanofilt.yml"
+#	shell:
+#		"""
+#		gunzip -c {input} | NanoFilt --quality 7 --length 1000 --headcrop 200 --tailcrop 200 | gzip > {output}
+#		"""
+
+#rule filtered_trimmed_nanoplot:
+#	input:
+#		"filtered/{prefix}_trimmed_filtered.fastq.gz"
+#	output:
+#		directory("filtered/{prefix}_nanoplots")
+#	conda:
+#		"envs/default.yml"
+#	shell:
+#		"""
+#	NanoPlot --fastq {input} -o {output}
+#		"""
+
+###Subsampling plastid reads for plastid genome (chloro and mito) assembly - even though the rules are about "chloro" it will do both
+#PLASTIDTABLE was made by concatenating the chloroplast or mito genomes of 22 and 4 rice species, respectively - done on the head node
+#genomes were added in twice to allow mapping of reads that span the break-point in the circular genomes 
+#map long reads to chloroplast reference genome
+rule minimap2_plastid:
+	input:
+		PLASTIDTABLE = "chloro_assembly/reference/chloro_table.fasta",
+		QC_FASTQ = "working_raw_base_calls/{prefix}_guppy303_all.fastq.gz",
+	output:
+		"chloro_assembly/{prefix}_chloro_mapped_reads.sam",
+	conda:
+		"envs/mapping_reads.yml"
+	shell:
+		"""
+		minimap2 -ax map-ont {input.PLASTIDTABLE} {input.QC_FASTQ} > {output}
+		"""
+
+#extract reads that map to chloro
+rule samtools_minimap2_plastid:
+	input:
+		"chloro_assembly/{prefix}_chloro_mapped_reads.sam"
+	output:
+		"chloro_assembly/{prefix}_chloro_only_mapped_reads.sam"
+	conda:
+		"envs/mapping_reads.yml"
+	shell:
+		"""
+		samtools view -F 4 {input} > {output}
+		"""
+
+#get chloro read names
+rule extract_plastid_read_names:
+	input:
+		"chloro_assembly/{prefix}_chloro_only_mapped_reads.sam"
+	output:
+		"chloro_assembly/{prefix}_chloro_read_names.txt",
+	conda:
+		"envs/mapping_reads.yml"
+	shell:
+		"""
+		awk '{{print $1}}' {input} > {output}
+		"""
+
+#generates list of unique read names that map to plastid (chloro and/or mito genomes)
+rule sort_unique_mapped_read_names:
+	input:
+		"chloro_assembly/{prefix}_chloro_read_names.txt"
+	output:
+		"chloro_assembly/{prefix}_unique_chloro_read_names.txt"
+	conda:
+		"envs/default.yml"
+	shell:
+		"""
+		sort {input} | uniq > {output}
+		"""
+
+rule pull_unique_reads:
+	input:
+		QC_FASTQ2 = "working_raw_base_calls/Plantago_pacbio_guppy303_all.fastq.gz",
+		UNIQUE_CHLORO_READS = "chloro_assembly/{prefix}_unique_chloro_read_names.txt"
+	output:
+		"chloro_assembly/{prefix}_chloro_reads.fastq"
+	conda:
+		"envs/mapping_reads.yml"
+	shell:
+		"""
+		seqtk subseq {input.QC_FASTQ2} {input.UNIQUE_CHLORO_READS} > {output}
+		"""
+
+rule raw_flye_chloro_assembly:
+	input:
+		"chloro_assembly/{prefix}_chloro_reads.fastq"
+	output:
+		"chloro_assembly/raw_reads/asm-{asm}_ovlp-{overlap}/{prefix}_flye_assembly/assembly.fasta"
+	conda:
+		"envs/genome_assembly.yml"
+	params:
+		outdir = "chloro_assembly/raw_reads/asm-{asm}_ovlp-{overlap}/{prefix}_flye_assembly"
+	shell:
+		"""
+		flye --nano-raw {input} --asm-coverage {wildcards.asm} --min-overlap {wildcards.overlap} --out-dir {params.outdir} --genome-size 135k  --threads 20
+		"""
+
+##check quality of chloroplast assembly:
+#BUSCO
+#LAI

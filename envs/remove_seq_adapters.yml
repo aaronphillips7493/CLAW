@@ -1,0 +1,8 @@
+channels:
+ - bioconda
+ - conda-forge
+ - defaults
+dependencies:
+ - porechop=0.2.3_seqan2.1.1
+ - unzip=6.0
+
