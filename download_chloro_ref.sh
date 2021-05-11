@@ -5,14 +5,18 @@ do
 	ncbi-acc-download --format fasta $i
 done
 
-touch chloro_table.fasta
+mkdir -p chloro_assembly/reference
+
+touch chloro_table_3.fasta
 for j in *.fa
 do
 	echo ${j}
-	grep '^>' ${j} >> chloro_table.fasta
+	grep '^>' ${j} >> chloro_table_3.fasta
 	grep -v '^>' ${j} > temp
 	tr -d '\n' < temp > temp2
-	cat temp2 >> chloro_table.fasta
-	cat temp2 >> chloro_table.fasta
-	sed -i -e '$a\' chloro_table.fasta
+	cat temp2 >> chloro_table_3.fasta
+	cat temp2 >> chloro_table_3.fasta
+	sed -i -e '$a\' chloro_table_3.fasta
 done
+
+mv chloro_table_3.fasta chloro_assembly/reference/
