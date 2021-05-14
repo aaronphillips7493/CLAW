@@ -7,7 +7,7 @@ dependencies:
  - pigz=2.3.4
  - samtools=1.9
  - htslib=1.10.2
- - flye=2.6
+ - flye=2.8.3
  - mafft=7.453
  - bbmap=38.79
  - hypo=1.0.3

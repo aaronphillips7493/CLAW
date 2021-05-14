@@ -31,6 +31,7 @@ filtered_trimmed_nanoplot:
 minimap2_plastid:
         cpus-per-task : 12
         time : "00-03:00:00"
+        mem : "20G"
 
 map_long_reads_to_OsJap_mito:
         cpus-per-task : 12
@@ -100,9 +101,14 @@ filter_mito_long_reads:
         cpus-per-task : 6
         time : "00-12:00:00"
 
+subset_reads_for_x_coverage:
+        cpus-per-task : 6
+        time : "00-00:30:00"
+
 raw_flye_chloro_assembly:
-        cpus-per-task : 12
+        cpus-per-task : 20
         time : "00-05:00:00"
+        mem : "20G"
 
 raw_flye_mito_assembly:
         cpus-per-task : 12
