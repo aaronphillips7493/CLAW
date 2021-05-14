@@ -9,10 +9,15 @@ Use conda:
 https://docs.conda.io/projects/conda/en/latest/user-guide/install/linux.html
 
 Make sure you have snakemake and Biopython installed
+
 a) conda create --name snakemake
+
 b) conda activate snakemake
+
 c) conda install mamba
+
 d) mamba install snakemake
+
 e) mamba install biopython
 ###
 
