@@ -27,18 +27,9 @@ rule all:
 		expand("working_raw_base_calls/{sample}_guppy303_all.fastq.gz",
 			sample=SAMPLES,
 			),
-#		expand("nanoplot/{sample}_nanoplots",
-#			sample=SAMPLES,
-#			),
-#		expand("nanolysed/{sample}.fastq.gz",
-#			sample=SAMPLES,
-#			),
-#		expand("filtered/{sample}_trimmed_filtered.fastq.gz",
-#			sample=SAMPLES,
-#			),
-#		expand("filtered/{sample}_nanoplots",
-#			sample=SAMPLES,
-#			),
+		expand("chloro_assembly/reference/{sample}_circular_chloro_reference.fasta",
+			sample=SAMPLES,
+			),
 		expand("chloro_assembly/{sample}_chloro_mapped_reads.sam",
 			sample=SAMPLES,
 			),
@@ -54,11 +45,7 @@ rule all:
 		expand("chloro_assembly/{sample}_chloro_reads.fastq",
 			sample=SAMPLES,
 			),
-#		expand("{genome}_assembly/nanoplots/{sample}",
-#			sample=SAMPLES,
-#			genome=["chloro","mito"],
-#			),
-		expand("chloro_assembly/raw_reads/cov-{cov}_asm-{asm}_ovlp-{overlap}/{sample}_flye_assembly/assembly.fasta",
+		expand("chloro_assembly/cov-{cov}_asm-{asm}_ovlp-{overlap}/{sample}_flye_assembly/assembly.fasta",
 			cov=["70","100","300"],
 			asm=["50","100","300"],
 			overlap=["5000","10000"],
@@ -79,30 +66,6 @@ rule fastq_to_gz:
 		pigz --stdout --best --processes {threads} {input} > {output}
 		"""
 
-#rule nanoplot:
-#	input:
-#		"working_raw_base_calls/{prefix}_guppy303_all.fastq.gz"
-#	output:
-#		directory("nanoplot/{prefix}_nanoplots")
-#	conda:
-#		"envs/default.yml"
-#	shell:
-#		"""
-#	NanoPlot --fastq {input} -o {output}
-#		"""
-
-#rule remove_control_DNA:
-#	input:
-#		"working_raw_base_calls/{prefix}_guppy303_all.fastq.gz"
-#	output:
-#		"nanolysed/{prefix}.fastq.gz"
-#	conda:
-#		"envs/remove_control_DNA.yml"
-#	shell:
-#		"""
-#		gunzip -c {input} | NanoLyse -r reference/DNA_CS.fasta | gzip > {output} 
-#		"""
-
 #replaces the porechop removal of adapters as it is faster to just trim the first and last 200bp from reads than to use Porechop to do the same thing 
 rule quality_filtering:
 #	input:
@@ -116,25 +79,38 @@ rule quality_filtering:
 #		gunzip -c {input} | NanoFilt --quality 7 --length 1000 --headcrop 200 --tailcrop 200 | gzip > {output}
 #		"""
 
-#rule filtered_trimmed_nanoplot:
-#	input:
-#		"filtered/{prefix}_trimmed_filtered.fastq.gz"
-#	output:
-#		directory("filtered/{prefix}_nanoplots")
-#	conda:
-#		"envs/default.yml"
-#	shell:
-#		"""
-#	NanoPlot --fastq {input} -o {output}
-#		"""
-
 ###Subsampling plastid reads for plastid genome (chloro and mito) assembly - even though the rules are about "chloro" it will do both
 #PLASTIDTABLE was made by concatenating the chloroplast or mito genomes of 22 and 4 rice species, respectively - done on the head node
 #genomes were added in twice to allow mapping of reads that span the break-point in the circular genomes 
 #map long reads to chloroplast reference genome
+
+#need to have Biopython installed for NCBI download to work
+from snakemake.remote.NCBI import RemoteProvider as NCBIRemoteProvider
+NCBI = NCBIRemoteProvider(email="aaron.phillips@adelaide.edu.au") # email required by NCBI to prevent abuse
+rule download_chloro_genome:
+        input:
+                NCBI.remote("NC_041421.1.fasta", db="nuccore")
+        output:
+                "chloro_assembly/reference/{prefix}_circular_chloro_reference.fasta"
+        shell:
+                """
+                cat {input} > chloro_assembly/reference/{wildcards.prefix}_reference_chloroplast_genomes.fasta
+                touch {output}
+                for j in chloro_assembly/reference/{wildcards.prefix}_reference_chloroplast_genomes.fasta
+                do
+                        echo ${{j}}
+                        grep '^>' ${{j}} >> {output}
+                        grep -v '^>' ${{j}} > temp
+                        tr -d '\\n' < temp > temp2
+                        cat temp2 >> {output}
+                        cat temp2 >> {output}
+                        sed -i -e '$a\\\' {output}
+                done
+                """
+
 rule minimap2_plastid:
 	input:
-		PLASTIDTABLE = "chloro_assembly/reference/chloro_table.fasta",
+		PLASTIDTABLE = "chloro_assembly/reference/{prefix}_circular_chloro_reference.fasta",
 		QC_FASTQ = "working_raw_base_calls/{prefix}_guppy303_all.fastq.gz",
 	output:
 		"chloro_assembly/{prefix}_chloro_mapped_reads.sam",
@@ -197,6 +173,7 @@ rule pull_unique_reads:
 		seqtk subseq {input.QC_FASTQ2} {input.UNIQUE_CHLORO_READS} > {output}
 		"""
 
+#need to subset reads, otherwise the mem requirements of Flye are too huge (when cov is in 10's of thousands with raw reads)
 rule subset_reads_for_x_coverage:
 	input:
 		"chloro_assembly/{prefix}_chloro_reads.fastq",
@@ -215,7 +192,7 @@ rule raw_flye_chloro_assembly:
 	input:
 		"chloro_assembly/{prefix}_chloro_reads_subsampled_{cov}x_cov.fastq"
 	output:
-		"chloro_assembly/raw_reads/cov-{cov}_asm-{asm}_ovlp-{overlap}/{prefix}_flye_assembly/assembly.fasta"
+		"chloro_assembly/cov-{cov}_asm-{asm}_ovlp-{overlap}/{prefix}_flye_assembly/assembly.fasta"
 	conda:
 		"envs/genome_assembly.yml"
 	params:
