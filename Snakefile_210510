@@ -58,7 +58,8 @@ rule all:
 #			sample=SAMPLES,
 #			genome=["chloro","mito"],
 #			),
-		expand("chloro_assembly/raw_reads/asm-{asm}_ovlp-{overlap}/{sample}_flye_assembly/assembly.fasta",
+		expand("chloro_assembly/raw_reads/cov-{cov}_asm-{asm}_ovlp-{overlap}/{sample}_flye_assembly/assembly.fasta",
+			cov=["70","100","300"],
 			asm=["50","100","300"],
 			overlap=["5000","10000"],
 			sample=SAMPLES,
@@ -141,7 +142,7 @@ rule minimap2_plastid:
 		"envs/mapping_reads.yml"
 	shell:
 		"""
-		minimap2 -ax map-ont {input.PLASTIDTABLE} {input.QC_FASTQ} > {output}
+		minimap2 -ax map-pb {input.PLASTIDTABLE} {input.QC_FASTQ} > {output}
 		"""
 
 #extract reads that map to chloro
@@ -196,18 +197,33 @@ rule pull_unique_reads:
 		seqtk subseq {input.QC_FASTQ2} {input.UNIQUE_CHLORO_READS} > {output}
 		"""
 
+rule subset_reads_for_x_coverage:
+	input:
+		"chloro_assembly/{prefix}_chloro_reads.fastq",
+	output:
+		"chloro_assembly/{prefix}_chloro_reads_subsampled_{cov}x_cov.fastq",
+	conda:
+		"envs/subset_reads_for_x_coverage.yml"
+	params:
+		genome_size="150kb",  # required
+	shell:
+		"""
+		rasusa --input {input} --output {output} --coverage {wildcards.cov} --genome-size {params.genome_size}
+		"""
+
 rule raw_flye_chloro_assembly:
 	input:
-		"chloro_assembly/{prefix}_chloro_reads.fastq"
+		"chloro_assembly/{prefix}_chloro_reads_subsampled_{cov}x_cov.fastq"
 	output:
-		"chloro_assembly/raw_reads/asm-{asm}_ovlp-{overlap}/{prefix}_flye_assembly/assembly.fasta"
+		"chloro_assembly/raw_reads/cov-{cov}_asm-{asm}_ovlp-{overlap}/{prefix}_flye_assembly/assembly.fasta"
 	conda:
 		"envs/genome_assembly.yml"
 	params:
-		outdir = "chloro_assembly/raw_reads/asm-{asm}_ovlp-{overlap}/{prefix}_flye_assembly"
+		genome_size="150k", #required
+		outdir = "chloro_assembly/raw_reads/cov-{cov}_asm-{asm}_ovlp-{overlap}/{prefix}_flye_assembly"
 	shell:
 		"""
-		flye --nano-raw {input} --asm-coverage {wildcards.asm} --min-overlap {wildcards.overlap} --out-dir {params.outdir} --genome-size 135k  --threads 20
+		flye --pacbio-raw {input} --asm-coverage {wildcards.asm} --min-overlap {wildcards.overlap} --out-dir {params.outdir} --genome-size {params.genome_size}  --threads 20
 		"""
 
 ##check quality of chloroplast assembly:
