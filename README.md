@@ -1,14 +1,14 @@
-###
+.###
 How to use Snakemake workflow: long-read-chloroplast-assembly
 Found at:
 https://github.com/aaronphillips7493/long-read-chloroplast-assembly
-###
+.###
 
-###
+.###
 Use conda:
 https://docs.conda.io/projects/conda/en/latest/user-guide/install/linux.html
 
-Make sure you have snakemake and Biopython installed
+Make sure you have snakemake and Biopython installed:
 
 a) conda create --name snakemake
 
@@ -19,7 +19,7 @@ c) conda install mamba
 d) mamba install snakemake
 
 e) mamba install biopython
-###
+.###
 
 #####Still need to fix the yml file situation; try have one yml file for each rule in Snakefile#####
 
@@ -29,9 +29,9 @@ e) mamba install biopython
 
 #####Still need to find a better way to enter genome size#####
   
-###
+.###
 Steps
-###
+.###
 
 1. Add your unique sample prefix(s) to the SAMPLES section of the Snakefile. 
 
