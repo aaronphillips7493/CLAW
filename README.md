@@ -1,10 +1,13 @@
 .###
+
 How to use Snakemake workflow: long-read-chloroplast-assembly
 Found at:
 https://github.com/aaronphillips7493/long-read-chloroplast-assembly
+
 .###
 
 .###
+
 Use conda:
 https://docs.conda.io/projects/conda/en/latest/user-guide/install/linux.html
 
@@ -19,6 +22,7 @@ c) conda install mamba
 d) mamba install snakemake
 
 e) mamba install biopython
+
 .###
 
 #####Still need to fix the yml file situation; try have one yml file for each rule in Snakefile#####
