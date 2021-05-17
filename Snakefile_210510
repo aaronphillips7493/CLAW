@@ -129,11 +129,13 @@ rule samtools_minimap2_plastid:
 		"chloro_assembly/{prefix}_chloro_mapped_reads.sam"
 	output:
 		"chloro_assembly/{prefix}_chloro_only_mapped_reads.sam"
+	threads:
+		15
 	conda:
 		"envs/mapping_reads.yml"
 	shell:
 		"""
-		samtools view -F 4 {input} > {output}
+		samtools view -F 4 -a {threads} {input} > {output}
 		"""
 
 #get chloro read names
