@@ -114,11 +114,13 @@ rule minimap2_plastid:
 		QC_FASTQ = "working_raw_base_calls/{prefix}_guppy303_all.fastq.gz",
 	output:
 		"chloro_assembly/{prefix}_chloro_mapped_reads.sam",
+	threads:
+		15
 	conda:
 		"envs/mapping_reads.yml"
 	shell:
 		"""
-		minimap2 -ax map-pb {input.PLASTIDTABLE} {input.QC_FASTQ} > {output}
+		minimap2 -ax map-pb -t {threads} {input.PLASTIDTABLE} {input.QC_FASTQ} > {output}
 		"""
 
 #extract reads that map to chloro
@@ -195,12 +197,14 @@ rule raw_flye_chloro_assembly:
 		"chloro_assembly/cov-{cov}_asm-{asm}_ovlp-{overlap}/{prefix}_flye_assembly/assembly.fasta"
 	conda:
 		"envs/genome_assembly.yml"
+	threads:
+		20
 	params:
 		genome_size="150k", #required
-		outdir = "chloro_assembly/raw_reads/cov-{cov}_asm-{asm}_ovlp-{overlap}/{prefix}_flye_assembly"
+		outdir = "chloro_assembly/cov-{cov}_asm-{asm}_ovlp-{overlap}/{prefix}_flye_assembly"
 	shell:
 		"""
-		flye --pacbio-raw {input} --asm-coverage {wildcards.asm} --min-overlap {wildcards.overlap} --out-dir {params.outdir} --genome-size {params.genome_size}  --threads 20
+		flye --pacbio-raw {input} --asm-coverage {wildcards.asm} --min-overlap {wildcards.overlap} --out-dir {params.outdir} --genome-size {params.genome_size}  --threads {threads}
 		"""
 
 ##check quality of chloroplast assembly:
