@@ -10,8 +10,8 @@ SAMPLES=[
 #"Oaustraliensis-keepriver-flowcell-3-SQK-LSK109",
 #"Omeridionalis-BH-flowcell-1-SQK-LSK109",
 #"Osativa_Java_30g_SQK-LSK109",
-#"Oaustraliensis_keepriver_flowcell1-2-3",
-"Plantago_pacbio"
+"Oaustraliensis_keepriver_flowcell1-2-3",
+#"Plantago_pacbio"
 ]
 
 singularity:
@@ -45,16 +45,22 @@ rule all:
 		expand("chloro_assembly/{sample}_chloro_reads.fastq",
 			sample=SAMPLES,
 			),
-		expand("chloro_assembly/cov-{cov}_asm-{asm}_ovlp-{overlap}/{sample}_flye_assembly/assembly.fasta",
-			cov=["70","100","300"],
-			asm=["50","100","300"],
-			overlap=["5000","10000"],
+		expand("chloro_assembly/{sample}_flye_assembly/cov-{cov}_asm-{asm}_ovlp-{overlap}/assembly.fasta",
+			cov=["300"],
+			asm=["300"],
+			overlap=["10000"],
 			sample=SAMPLES,
 			),
+		expand("chloro_assembly/{sample}_flye_assembly/cov-{cov}_asm-{asm}_ovlp-{overlap}/rotated_assembly.fasta",
+			cov=["300"],
+                        asm=["300"],
+                        overlap=["10000"],
+                        sample=SAMPLES,
+                        ),
 
 rule fastq_to_gz:
 	input:
-		"backup/{prefix}/{prefix}_guppy303_all.fastq"
+		"working_raw_base_calls/{prefix}_guppy303_all.fastq"
 	output:
 		"working_raw_base_calls/{prefix}_guppy303_all.fastq.gz"
 	conda:
@@ -84,19 +90,72 @@ rule quality_filtering:
 #genomes were added in twice to allow mapping of reads that span the break-point in the circular genomes 
 #map long reads to chloroplast reference genome
 
+
 #need to have Biopython installed for NCBI download to work
 from snakemake.remote.NCBI import RemoteProvider as NCBIRemoteProvider
 NCBI = NCBIRemoteProvider(email="aaron.phillips@adelaide.edu.au") # email required by NCBI to prevent abuse
+#KT289404.1.fasta
 rule download_chloro_genome:
         input:
-                NCBI.remote("NC_041421.1.fasta", db="nuccore")
+                NCBI.remote("KF359916.1.fasta", db="nuccore")
         output:
-                "chloro_assembly/reference/{prefix}_circular_chloro_reference.fasta"
-        shell:
+                "chloro_assembly/reference/{prefix}_reference_chloroplast_genome.fasta",
+	shell:
                 """
-                cat {input} > chloro_assembly/reference/{wildcards.prefix}_reference_chloroplast_genomes.fasta
-                touch {output}
-                for j in chloro_assembly/reference/{wildcards.prefix}_reference_chloroplast_genomes.fasta
+		cat {input} > chloro_assembly/reference/{wildcards.prefix}_reference_chloroplast_genome.fasta
+                """
+
+#cat {input} | head -n 1 | cut -d " " -f 1 > {output}
+rule get_ref_chloro_genome_header:
+	input:
+		"chloro_assembly/reference/{prefix}_reference_chloroplast_genome.fasta"
+	output:
+		"chloro_assembly/reference/{prefix}_reference_chloroplast_header.txt"
+	shell:
+		"""
+		head -n 1 {input} > {output}
+		"""
+
+rule get_ref_chloro_genome_NCBI_name:
+	input:
+		"chloro_assembly/reference/{prefix}_reference_chloroplast_header.txt"
+	output:
+		"chloro_assembly/reference/{prefix}_reference_chloroplast_name.txt"
+	shell:
+		"""
+		cut -d " " -f 1 {input} > {output}
+		"""
+
+rule get_ref_chloro_genome_seq:
+	input:
+		"chloro_assembly/reference/{prefix}_reference_chloroplast_genome.fasta"
+	output:
+		"chloro_assembly/reference/{prefix}_reference_chloroplast_seq.txt"
+	shell:
+		"""
+		cat {input} | tail -n+2 > {output}
+		"""
+
+rule make_working_ref_chloro_genome:
+	input:
+		name="chloro_assembly/reference/{prefix}_reference_chloroplast_name.txt",
+		seq="chloro_assembly/reference/{prefix}_reference_chloroplast_seq.txt",
+	output:
+		"chloro_assembly/reference/{prefix}_reference_chloroplast_genome_NCBI_name.fasta"
+	shell:
+		"""
+		cat {input.name} {input.seq} > {output}
+		"""
+
+rule make_circular_chloro_ref_genome:
+	input:
+		"chloro_assembly/reference/{prefix}_reference_chloroplast_genome_NCBI_name.fasta"
+	output:
+		"chloro_assembly/reference/{prefix}_circular_chloro_reference.fasta"
+	shell:
+		"""
+		touch {output}
+                for j in {input} #chloro_assembly/reference/{wildcards.prefix}_reference_chloroplast_genome_NCBI_name.fasta
                 do
                         echo ${{j}}
                         grep '^>' ${{j}} >> {output}
@@ -106,7 +165,7 @@ rule download_chloro_genome:
                         cat temp2 >> {output}
                         sed -i -e '$a\\\' {output}
                 done
-                """
+		"""
 
 rule minimap2_plastid:
 	input:
@@ -120,7 +179,7 @@ rule minimap2_plastid:
 		"envs/mapping_reads.yml"
 	shell:
 		"""
-		minimap2 -ax map-pb -t {threads} {input.PLASTIDTABLE} {input.QC_FASTQ} > {output}
+		minimap2 -ax map-ont -t {threads} {input.PLASTIDTABLE} {input.QC_FASTQ} > {output}
 		"""
 
 #extract reads that map to chloro
@@ -135,7 +194,7 @@ rule samtools_minimap2_plastid:
 		"envs/mapping_reads.yml"
 	shell:
 		"""
-		samtools view -F 4 -a {threads} {input} > {output}
+		samtools view -F 4 -@ {threads} {input} > {output}
 		"""
 
 #get chloro read names
@@ -166,7 +225,7 @@ rule sort_unique_mapped_read_names:
 
 rule pull_unique_reads:
 	input:
-		QC_FASTQ2 = "working_raw_base_calls/Plantago_pacbio_guppy303_all.fastq.gz",
+		QC_FASTQ2 = "working_raw_base_calls/{prefix}_guppy303_all.fastq.gz",
 		UNIQUE_CHLORO_READS = "chloro_assembly/{prefix}_unique_chloro_read_names.txt"
 	output:
 		"chloro_assembly/{prefix}_chloro_reads.fastq"
@@ -196,17 +255,120 @@ rule raw_flye_chloro_assembly:
 	input:
 		"chloro_assembly/{prefix}_chloro_reads_subsampled_{cov}x_cov.fastq"
 	output:
-		"chloro_assembly/cov-{cov}_asm-{asm}_ovlp-{overlap}/{prefix}_flye_assembly/assembly.fasta"
+		"chloro_assembly/{prefix}_flye_assembly/cov-{cov}_asm-{asm}_ovlp-{overlap}/assembly.fasta"
 	conda:
 		"envs/genome_assembly.yml"
 	threads:
 		20
 	params:
-		genome_size="150k", #required
-		outdir = "chloro_assembly/cov-{cov}_asm-{asm}_ovlp-{overlap}/{prefix}_flye_assembly"
+		genome_size="136k", #required
+		outdir = "chloro_assembly/{prefix}_flye_assembly/cov-{cov}_asm-{asm}_ovlp-{overlap}"
 	shell:
 		"""
-		flye --pacbio-raw {input} --asm-coverage {wildcards.asm} --min-overlap {wildcards.overlap} --out-dir {params.outdir} --genome-size {params.genome_size}  --threads {threads}
+		flye --nano-raw {input} --asm-coverage {wildcards.asm} --min-overlap {wildcards.overlap} --out-dir {params.outdir} --genome-size {params.genome_size}  --threads {threads}
+		"""
+
+#'rotate' the assembled chloroplast genome to match the expected orientation: https://github.com/mrmckain/Fast-Plast/issues/22
+
+rule get_chloro_ref_name_only:
+	input:
+		"chloro_assembly/reference/{prefix}_reference_chloroplast_name.txt"
+	output:
+		"chloro_assembly/reference/{prefix}_reference_chloroplast_name_2.txt"
+	shell:
+		"""
+		sed -e 's/>//' {input} > {output}
+		"""
+
+rule create_bed_file_for_10kbp_chloro_region:
+	input:
+		"chloro_assembly/reference/{prefix}_reference_chloroplast_name_2.txt"
+	output:
+		"chloro_assembly/reference/{prefix}_reference_chloroplast_genome_first_10kbp.bed"
+	shell:
+		"""
+		echo "$(<{input} )" 1 10000 > {output}
+		"""
+
+rule extract_first_10kbp_from_ref:
+	input:
+		fasta="chloro_assembly/reference/{prefix}_circular_chloro_reference.fasta",
+		bed="chloro_assembly/reference/{prefix}_reference_chloroplast_genome_first_10kbp.bed"
+	output:
+		"chloro_assembly/reference/{prefix}_reference_chloroplast_genome_first_10kbp.fasta"
+	conda:
+		"envs/genome_assembly.yml"
+	shell:
+		"""
+		seqtk subseq {input.fasta} {input.bed} > {output}
+		"""
+
+rule align_chloro_to_ref:
+	input:
+		query ="chloro_assembly/reference/{prefix}_reference_chloroplast_genome_first_10kbp.fasta",
+		ref="chloro_assembly/{prefix}_flye_assembly/cov-{cov}_asm-{asm}_ovlp-{overlap}/assembly.fasta"
+	output:
+		"chloro_assembly/{prefix}_flye_assembly/cov-{cov}_asm-{asm}_ovlp-{overlap}/{prefix}_vs_ref_10kbp.delta"
+	conda:
+		"envs/genome_assembly.yml"
+	params:
+		prefix="chloro_assembly/{prefix}_flye_assembly/cov-{cov}_asm-{asm}_ovlp-{overlap}/{prefix}_vs_ref_10kbp"
+	shell:
+		"""
+		nucmer --maxmatch --prefix={params.prefix} {input.query} {input.ref}
+		"""
+
+rule get_alignment_coords:
+	input:
+		"chloro_assembly/{prefix}_flye_assembly/cov-{cov}_asm-{asm}_ovlp-{overlap}/{prefix}_vs_ref_10kbp.delta"
+	output:
+		"chloro_assembly/{prefix}_flye_assembly/cov-{cov}_asm-{asm}_ovlp-{overlap}/{prefix}_vs_ref_10kbp_coords.coords"
+	conda:
+		"envs/genome_assembly.yml"
+	shell:
+		"""
+		show-coords -THrd {input} > {output}
+		"""
+
+rule extract_contig_name:
+	input:
+		"chloro_assembly/{prefix}_flye_assembly/cov-{cov}_asm-{asm}_ovlp-{overlap}/assembly.fasta",
+	output:
+		"chloro_assembly/{prefix}_flye_assembly/cov-{cov}_asm-{asm}_ovlp-{overlap}/rotated_assembly_name.fasta"
+	shell:
+		"""
+		grep '^>' {input} > {output}
+		"""
+
+rule extract_contig_seq:
+	input:
+		"chloro_assembly/{prefix}_flye_assembly/cov-{cov}_asm-{asm}_ovlp-{overlap}/assembly.fasta"
+	output:
+		"chloro_assembly/{prefix}_flye_assembly/cov-{cov}_asm-{asm}_ovlp-{overlap}/temp.fasta"
+	shell:
+		"""
+		grep -v '^>' {input} | tr -d '\\n' > {output}
+		"""
+
+rule rotate_chloro_genomes:
+	input:
+		chloro="chloro_assembly/{prefix}_flye_assembly/cov-{cov}_asm-{asm}_ovlp-{overlap}/assembly.fasta",
+		coords="chloro_assembly/{prefix}_flye_assembly/cov-{cov}_asm-{asm}_ovlp-{overlap}/{prefix}_vs_ref_10kbp_coords.coords"
+	output:
+		rotated="chloro_assembly/{prefix}_flye_assembly/cov-{cov}_asm-{asm}_ovlp-{overlap}/rotated_assembly.fasta",
+		temp="chloro_assembly/{prefix}_flye_assembly/cov-{cov}_asm-{asm}_ovlp-{overlap}/temp.fasta",
+		start="chloro_assembly/{prefix}_flye_assembly/cov-{cov}_asm-{asm}_ovlp-{overlap}/genome.start.fasta",
+		end="chloro_assembly/{prefix}_flye_assembly/cov-{cov}_asm-{asm}_ovlp-{overlap}/genome_end.fasta"
+	shell:
+		"""
+		best="$(cut -f6 {input.coords} | sort -hr | head -n 1)"
+		start="$(sort -k6,6hr {input.coords} | head -n 1 | cut -f3 || true)"
+		#start="$(grep $best {input.coords} | cut -f3)"
+		grep '^>' {input.chloro} > {output.rotated} 
+  		grep -v '^>' {input.chloro} | tr -d '\\n' > {output.temp}
+		cut -c ${{start}}- {output.temp} > {output.start}
+		cut -c -$[${{start}}-1] {output.temp} > {output.end}
+		cat {output.start} {output.end} | tr -d '\\n' >> {output.rotated} 
 		"""
 
 ##check quality of chloroplast assembly:
