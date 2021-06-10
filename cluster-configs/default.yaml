@@ -20,6 +20,10 @@ remove_control_DNA:
         cpus-per-task : 12
         time          : "00-12:00:00"
 
+download_ncbi_long_reads:
+        cpus-per-task : 20
+        time : "00-07:00:00"
+
 quality_filtering:
         cpus-per-task : 12
         time : "00-03:00:00"
