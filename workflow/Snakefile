@@ -8,6 +8,10 @@ configfile: "config.yml"
 shell.executable("/bin/bash")
 shell.prefix("set -euo pipefail; ")
 
+##########
+# avoid recursion loop
+wildcard_constraints:
+        sample="[^/]+",
 
 ##########
 # Find all fasta/fsatq/fasta.gz/fastq.gz files
@@ -17,7 +21,7 @@ shell.prefix("set -euo pipefail; ")
 samples, = glob_wildcards("chloro_assembly/fastq/{file}." + config["fast_file"])
 rule all:
     input:
-        "chloro_assembly/reference/single.fasta",
+        "chloro_assembly/reference/index.fasta",
         expand("chloro_assembly/{sample}~chloroplast.fasta", sample=samples)
 
 ##########
@@ -94,7 +98,9 @@ rule check_size:
     output:
         "chloro_assembly/checkSize/{sample}.fasta"
     shell:
-        "bioawk -c fastx 'BEGIN{{lower = {config[chloroplastSize]} * {config[chloroplastSizePC]}; upper = {config[chloroplastSize]} * (2-{config[chloroplastSizePC]})}}{{if(length($seq) > lower && length($seq) < upper){{print \">\"$name\"\\n\"$seq}}}}' {input.query} > {output}"
+        """
+        bioawk -c fastx 'BEGIN{{lower = {config[chloroplastSize]} * {config[chloroplastSizePC]}; upper = {config[chloroplastSize]} * (2-{config[chloroplastSizePC]})}}{{if(length($seq) > lower && length($seq) < upper){{print \">\"$name\"\\n\"$seq}}}}' {input.query} > {output}
+        """
 
 ##########
 # Assemble our subset of chloroplast reads.
@@ -111,8 +117,10 @@ rule assemble:
     threads:
         config["cpus"]
     shell:
-        "mkdir -p chloro_assembly/assemblies ;"
-        "flye --threads {threads} -o {params.assembly} {config[flyeParameter]} {input}"
+        """
+        mkdir -p chloro_assembly/assemblies
+        flye --threads {threads} -o {params.assembly} {config[flyeParameter]} {input}
+        """
 
 ##########
 # From our chloroplast read set randomly sample X reads.
@@ -125,7 +133,9 @@ rule sub_sample:
     output:
         fastFile = "chloro_assembly/subReads/{sample}~assemble." + config["fast_file"]
     shell:
-        "seqtk sample -s {config[randSeed]} {input} {config[numberReads]} > {output}"
+        """
+        seqtk sample -s {config[randSeed]} {input} {config[numberReads]} > {output}
+        """
 
 ##########
 # After alignement we want to ID and extract chloroplast reads,
@@ -139,8 +149,9 @@ rule extract_aligned_reads:
         list = "chloro_assembly/alignments/{sample}~all.lst",
         fastFile = "chloro_assembly/subReads/{sample}~all." + config["fast_file"]
     shell:
-        "zcat {input.sam} | cut -f1 | sort | uniq > {output.list} ;"
-        "seqtk subseq {input.fastFile} {output.list} > {output.fastFile}"
+        """zcat {input.sam} | cut -f1 | sort | uniq > {output.list}
+        seqtk subseq {input.fastFile} {output.list} > {output.fastFile}
+        """
 
 ##########
 # Align reads to reference genome.
@@ -169,9 +180,11 @@ rule index_reference:
     output:
         "chloro_assembly/reference/index.fasta"
     shell:
-        "awk 'NR == 1 {{print substr($1,2,length($1)), \"0\", \"10000\"}}' {input} > chloro_assembly/reference/index.bed ;"
-        "seqtk subseq {input} chloro_assembly/reference/index.bed > {output} ;"
-        "rm chloro_assembly/reference/index.bed"
+        """
+        awk 'NR == 1 {{print substr($1,2,length($1)), \"0\", \"10000\"}}' {input} > chloro_assembly/reference/index.bed
+        seqtk subseq {input} chloro_assembly/reference/index.bed > {output}
+        rm chloro_assembly/reference/index.bed
+        """
 
 ##########
 # "circularise" our reference genome.
@@ -184,9 +197,11 @@ rule double_chloro_genome:
     output:
         "chloro_assembly/reference/circular.fasta"
     shell:
-        "head -n 1 {input} > {output} ;"
-        "tail -n +2 {input} | tr -d '\n' >> {output} ;"
-        "tail -n +2 {input} | tr -d '\n' >> {output}"
+        """
+        head -n 1 {input} > {output}
+        tail -n +2 {input} | tr -d '\n' >> {output}
+        tail -n +2 {input} | tr -d '\n' >> {output}
+        """
 
 
 ##########
@@ -201,4 +216,6 @@ rule download_chloro_genome:
     output:
         "chloro_assembly/reference/single.fasta"
     shell:
-        "cat {input} > {output}"
+        """
+        cat {input} > {output}
+        """
