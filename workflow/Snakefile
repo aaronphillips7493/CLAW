@@ -149,7 +149,8 @@ rule extract_aligned_reads:
         list = "chloro_assembly/alignments/{sample}~all.lst",
         fastFile = "chloro_assembly/subReads/{sample}~all." + config["fast_file"]
     shell:
-        """zcat {input.sam} | cut -f1 | sort | uniq > {output.list}
+        """
+        zcat {input.sam} | cut -f1 | sort | uniq > {output.list}
         seqtk subseq {input.fastFile} {output.list} > {output.fastFile}
         """
 
@@ -166,8 +167,10 @@ rule align:
     threads:
         config["cpus"]
     shell:
-        "minimap2 -ax map-ont -t {threads} {input.reference} {input.fastFile} | "
-        "samtools view -F 4 -@ {threads} | gzip > {output}"
+        """
+        minimap2 -ax map-ont -t {threads} {input.reference} {input.fastFile} \
+            | samtools view -F 4 -@ {threads} | gzip > {output}
+        """
 
 ##########
 # We want to have our genome start at the same point.
