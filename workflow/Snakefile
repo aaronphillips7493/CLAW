@@ -9,6 +9,21 @@ shell.executable("/bin/bash")
 shell.prefix("set -euo pipefail; ")
 
 ##########
+# local rules
+# these rules will be performed within the main job when using a cluster
+localrules: all,
+    rotate_chloroplast,
+    check_identity,
+    check_size,
+    sub_sample,
+    extract_aligned_reads,
+    index_reference,
+    double_chloro_genome
+#    download_chloro_genome, this job need to be on copyq.
+
+
+
+##########
 # avoid recursion loop
 wildcard_constraints:
         sample="[^/]+",
