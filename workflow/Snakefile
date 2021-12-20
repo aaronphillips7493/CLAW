@@ -54,7 +54,7 @@ rule rotate_chloroplast:
         dir = "chloro_assembly/{sample}~tmp",
         name = "{sample}~chloroplast"
     conda:
-	"envs/rorate_chloroplast.yml"
+	"envs/rotate_chloroplast.yml"
     shell:
         """
         if [ -s {input.genome} ]
@@ -116,6 +116,8 @@ rule check_size:
         query = "chloro_assembly/assemblies/{sample}/assembly.fasta"
     output:
         "chloro_assembly/checkSize/{sample}.fasta"
+    conda:
+	"envs/check_size.yml"
     shell:
         """
         bioawk -c fastx 'BEGIN{{lower = {config[chloroplastSize]} * {config[chloroplastSizePC]}; upper = {config[chloroplastSize]} * (2-{config[chloroplastSizePC]})}}{{if(length($seq) > lower && length($seq) < upper){{print \">\"$name\"\\n\"$seq}}}}' {input.query} > {output}
@@ -135,6 +137,8 @@ rule assemble:
         "chloro_assembly/assemblies/{sample}/assembly.fasta"
     threads:
         config["cpus"]
+    conda:
+	"envs/assemble.yml"
     shell:
         """
         mkdir -p chloro_assembly/assemblies
@@ -151,6 +155,8 @@ rule sub_sample:
         "chloro_assembly/subReads/{sample}~all." + config["fast_file"]
     output:
         fastFile = "chloro_assembly/subReads/{sample}~assemble." + config["fast_file"]
+    conda:
+	"envs/sub_sample.yml"
     shell:
         """
         seqtk sample -s {config[randSeed]} {input} {config[numberReads]} > {output}
@@ -167,6 +173,8 @@ rule extract_aligned_reads:
     output:
         list = "chloro_assembly/alignments/{sample}~all.lst",
         fastFile = "chloro_assembly/subReads/{sample}~all." + config["fast_file"]
+    conda:
+	"envs/extract_aligned_reads.yml"
     shell:
         """
         zcat {input.sam} | cut -f1 | sort | uniq > {output.list}
@@ -185,6 +193,8 @@ rule align:
         "chloro_assembly/alignments/{sample}.sam.gz"
     threads:
         config["cpus"]
+    conda:
+	"envs/align.yml"
     shell:
         """
         minimap2 -ax map-ont -t {threads} {input.reference} {input.fastFile} \
@@ -201,6 +211,8 @@ rule index_reference:
         "chloro_assembly/reference/circular.fasta"
     output:
         "chloro_assembly/reference/index.fasta"
+    conda:
+	"envs/index_reference.yml"
     shell:
         """
         awk 'NR == 1 {{print substr($1,2,length($1)), \"0\", \"10000\"}}' {input} > chloro_assembly/reference/index.bed
@@ -218,6 +230,8 @@ rule double_chloro_genome:
         "chloro_assembly/reference/single.fasta"
     output:
         "chloro_assembly/reference/circular.fasta"
+    conda:
+	"envs/double_chloro_genome.yml"
     shell:
         """
         head -n 1 {input} > {output}
