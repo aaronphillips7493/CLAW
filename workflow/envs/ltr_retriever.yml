@@ -1,8 +1,0 @@
-name: LTR_retriever
-channels:
- - bioconda
- - conda-forge
- - defaults
-dependencies:
- - ltr_retriever=2.8.7
- - repeatmasker=4.0.9_p2
