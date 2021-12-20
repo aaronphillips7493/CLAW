@@ -53,6 +53,8 @@ rule rotate_chloroplast:
     params:
         dir = "chloro_assembly/{sample}~tmp",
         name = "{sample}~chloroplast"
+    conda:
+	"envs/rorate_chloroplast.yml"
     shell:
         """
         if [ -s {input.genome} ]
@@ -86,6 +88,8 @@ rule check_identity:
         check = "chloro_assembly/checkIdentity/{sample}"
     output:
         "chloro_assembly/validated/{sample}~chloroplast.fasta"
+    conda:
+	"envs/check_identity.yml"
     shell:
         """
         echo {input.query}
@@ -233,6 +237,8 @@ rule download_chloro_genome:
         NCBI.remote(config["NCBI_reference_accession"] +".fasta", db="nuccore")
     output:
         "chloro_assembly/reference/single.fasta"
+    conda:
+	"envs/download_chloro_genome.yml"
     shell:
         """
         cat {input} > {output}
