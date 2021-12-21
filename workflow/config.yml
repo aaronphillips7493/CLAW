@@ -1,0 +1,14 @@
+NCBI_reference_accession: NC_035996.1
+my_Email: sg@somewhere.com.ru
+
+fast_file: fastq # fastq/fasta + gz/not-gz
+
+randSeed: 100
+numberReads: 300
+flyeParameter: --nano-raw
+
+chloroplastSize: 160000
+chloroplastSizePC: 0.85
+chloroplastIdentityPC: 0.85
+
+cpus: 6
