@@ -241,36 +241,17 @@ rule double_chloro_genome:
 ##########
 # Download reference chloroplast genome
 #  This genome is used to find chloroplast genomes within your read set
-#  Need to install BioPython before this rule runs --> HOW?
+#  Need to install BioPython before this rule runs --> installed as part of Snakemake env.
 #
 from snakemake.remote.NCBI import RemoteProvider as NCBIRemoteProvider
 NCBI = NCBIRemoteProvider(email=config["my_Email"]) # email required by NCBI to prevent abuse
+NCBI_GENOME = config["NCBI_reference_accession"] +".fasta"
 rule download_chloro_genome:
     input:
-        dummy = "installing.biopython.done",
-        genome = NCBI.remote(config["NCBI_reference_accession"] +".fasta", db="nuccore")
+        NCBI.remote(NCBI_GENOME, db="nuccore"),
     output:
         "chloro_assembly/reference/single.fasta"
-    conda:
-        "envs/download_chloro_genome.yml"
     shell:
         """
-        rm {input.dummy}
-        cat {input.genome} > {output}
+        cat {input} > {output}
         """
-
-##########
-#  Create a temporary dummy rule that is a dependancy of 
-#  the rule "download_chloro_genome" for the installation
-#  of BioPython.
-#
-rule install_biopython:
-    output:
-        touch("installing.biopython.done")
-    conda:
-        "envs/download_chloro_genome.yml"
-    shell:
-        """
-        python
-        import Bio
-        """ 
