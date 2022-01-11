@@ -1,13 +1,16 @@
-NCBI_reference_accession: NC_035996.1
-my_Email: sg@somewhere.com.ru
+NCBI_reference_accession: NC_031333.1  #NC_035996.1
+my_Email: aaron.phillips@adelaide.edu.au
 
-fast_file: fastq # fastq/fasta + gz/not-gz
+fast_file: fastq # fastq/fasta
+compression: .gz # .gz or blank
 
 randSeed: 100
-numberReads: 300
-flyeParameter: --nano-raw
+numberReads: 1500
+flyeParameter: --nano-raw #‘--nano-raw’ for ONT reads base-called prior to the release of Guppy5+, ‘--nano-corr’ for corrected ONT reads, or ‘--nano-hq’ for high quality ONT reads that have been base-called with Guppy5+; for PacBio CLR reads use ‘--pacbio-raw’ for regular CLR reads, or ‘--pacbio-corr’ for corrected CLR reads, or PacBio HiFi reads use ‘--pacbio-hifi’
 
-chloroplastSize: 160000
+minimap2Parameter: map-ont #'map-pb' for PacBio CLR reads or 'map-ont' for ONT long reads or 'map-hifi' for PacBio HiFi reads
+
+chloroplastSize: 135000 #rough estimate
 chloroplastSizePC: 0.85
 chloroplastIdentityPC: 0.85
 

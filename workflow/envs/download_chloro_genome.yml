@@ -4,3 +4,4 @@ channels:
  - defaults
 dependencies:
  - biopython=1.79
+ - entrez-direct=16.2

@@ -21,3 +21,13 @@ __default__ :
 #        cpus-per-task : 4
 #        mem           : "{resources.mem_mb}M"
 #        time          : "00-{resources.time_hrs}:00:00"
+
+align :
+        cpus-per-task : 6
+        mem           : 5G
+        time          : "00-00:35:00"
+
+assemble :
+        cpus-per-task : 8
+        mem           : 5G
+        time          : "00-00:20:00"

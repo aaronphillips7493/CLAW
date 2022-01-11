@@ -1,7 +1,6 @@
 ## snakemake --dag -s sf-chloro-1 | dot -Tsvg > dag.svg
 ## snakemake -s sf-chloro-1 --cores 7
 
-
 import json
 configfile: "config.yml"
 
@@ -11,14 +10,14 @@ shell.prefix("set -euo pipefail; ")
 ##########
 # local rules
 # these rules will be performed within the main job when using a cluster
-localrules: all,
-    rotate_chloroplast,
-    check_identity,
-    check_size,
-    sub_sample,
-    extract_aligned_reads,
-    index_reference,
-    double_chloro_genome
+#localrules: all,
+#    rotate_chloroplast,
+#    check_identity,
+#    check_size,
+#    sub_sample,
+#    extract_aligned_reads,
+#    index_reference,
+#    double_chloro_genome
 #    download_chloro_genome, this job need to be on copyq.
 
 
@@ -29,14 +28,14 @@ wildcard_constraints:
         sample="[^/]+",
 
 ##########
-# Find all fasta/fsatq/fasta.gz/fastq.gz files
+# Find all fasta/fastq/fasta.gz/fastq.gz files
 # continaing reads that we want to build our genome from
 # and attempt assembly of chloroplast genome
 #
-samples, = glob_wildcards("chloro_assembly/fastq/{file}." + config["fast_file"])
+samples, = glob_wildcards("chloro_assembly/reads/{file}." + config["fast_file"] + config["compression"])
 rule all:
     input:
-        "chloro_assembly/reference/index.fasta",
+        expand("chloro_assembly/reference/{sample}_index.fasta", sample=samples),
         expand("chloro_assembly/{sample}~chloroplast.fasta", sample=samples)
 
 ##########
@@ -46,7 +45,7 @@ rule all:
 #
 rule rotate_chloroplast:
     input:
-        index = "chloro_assembly/reference/index.fasta",
+        index = "chloro_assembly/reference/{sample}_index.fasta",
         genome = "chloro_assembly/validated/{sample}~chloroplast.fasta"
     output:
         "chloro_assembly/{sample}~chloroplast.fasta"
@@ -83,7 +82,7 @@ rule rotate_chloroplast:
 rule check_identity:
     input:
         query = "chloro_assembly/checkSize/{sample}.fasta",
-        reference = "chloro_assembly/reference/single.fasta"
+        reference = "chloro_assembly/reference/{sample}_single.fasta"
     params:
         check = "chloro_assembly/checkIdentity/{sample}"
     output:
@@ -112,7 +111,7 @@ rule check_identity:
 #
 rule check_size:
     input:
-        reference = "chloro_assembly/reference/single.fasta",
+        reference = "chloro_assembly/reference/{sample}_single.fasta",
         query = "chloro_assembly/assemblies/{sample}/assembly.fasta"
     output:
         "chloro_assembly/checkSize/{sample}.fasta"
@@ -169,7 +168,7 @@ rule sub_sample:
 rule extract_aligned_reads:
     input:
         sam = "chloro_assembly/alignments/{sample}.sam.gz",
-        fastFile = "chloro_assembly/fastq/{sample}." + config["fast_file"]
+        fastFile = "chloro_assembly/reads/{sample}." + config["fast_file"] + config["compression"]
     output:
         list = "chloro_assembly/alignments/{sample}~all.lst",
         fastFile = "chloro_assembly/subReads/{sample}~all." + config["fast_file"]
@@ -187,8 +186,8 @@ rule extract_aligned_reads:
 # 
 rule align:
     input:
-        fastFile = "chloro_assembly/fastq/{sample}." + config["fast_file"],
-        reference = "chloro_assembly/reference/circular.fasta"
+        fastFile = "chloro_assembly/reads/{sample}." + config["fast_file"] + config["compression"],
+        reference = "chloro_assembly/reference/{sample}_circular.fasta"
     output:
         "chloro_assembly/alignments/{sample}.sam.gz"
     threads:
@@ -197,7 +196,7 @@ rule align:
         "envs/align.yml"
     shell:
         """
-        minimap2 -ax map-ont -t {threads} {input.reference} {input.fastFile} \
+        minimap2 -ax {config[minimap2Parameter]} -t {threads} {input.reference} {input.fastFile} \
             | samtools view -F 4 -@ {threads} | gzip > {output}
         """
 
@@ -208,9 +207,9 @@ rule align:
 #
 rule index_reference:
     input:
-        "chloro_assembly/reference/circular.fasta"
+        "chloro_assembly/reference/{sample}_circular.fasta"
     output:
-        "chloro_assembly/reference/index.fasta"
+        "chloro_assembly/reference/{sample}_index.fasta"
     conda:
         "envs/index_reference.yml"
     shell:
@@ -227,9 +226,9 @@ rule index_reference:
 #
 rule double_chloro_genome:
     input:
-        "chloro_assembly/reference/single.fasta"
+        "chloro_assembly/reference/{sample}_single.fasta"
     output:
-        "chloro_assembly/reference/circular.fasta"
+        "chloro_assembly/reference/{sample}_circular.fasta"
     shell:
         """
         head -n 1 {input} > {output}
@@ -243,15 +242,15 @@ rule double_chloro_genome:
 #  This genome is used to find chloroplast genomes within your read set
 #  Need to install BioPython before this rule runs --> installed as part of Snakemake env.
 #
-from snakemake.remote.NCBI import RemoteProvider as NCBIRemoteProvider
-NCBI = NCBIRemoteProvider(email=config["my_Email"]) # email required by NCBI to prevent abuse
-NCBI_GENOME = config["NCBI_reference_accession"] +".fasta"
-rule download_chloro_genome:
-    input:
-        NCBI.remote(NCBI_GENOME, db="nuccore"),
-    output:
-        "chloro_assembly/reference/single.fasta"
-    shell:
-        """
-        cat {input} > {output}
-        """
+#from snakemake.remote.NCBI import RemoteProvider as NCBIRemoteProvider
+#NCBI = NCBIRemoteProvider(email=config["my_Email"]) # email required by NCBI to prevent abuse
+#NCBI_GENOME = config["NCBI_reference_accession"] +".fasta"
+#rule download_chloro_genome:
+#    input:
+#        NCBI.remote(NCBI_GENOME, db="nuccore"),
+#    output:
+#        "chloro_assembly/reference/{sample}_single.fasta"
+#    shell:
+#        """
+#        mv {input} {output}
+#        """
