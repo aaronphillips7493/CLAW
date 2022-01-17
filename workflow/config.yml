@@ -6,12 +6,24 @@ compression: .gz # .gz or blank
 
 randSeed: 100
 numberReads: 1500
-flyeParameter: --nano-raw #‘--nano-raw’ for ONT reads base-called prior to the release of Guppy5+, ‘--nano-corr’ for corrected ONT reads, or ‘--nano-hq’ for high quality ONT reads that have been base-called with Guppy5+; for PacBio CLR reads use ‘--pacbio-raw’ for regular CLR reads, or ‘--pacbio-corr’ for corrected CLR reads, or PacBio HiFi reads use ‘--pacbio-hifi’
+flyeParameter: --nano-raw 
+    # --nano-raw    = ONT reads base-called prior to the release of Guppy5+
+    # --nano-corr   = corrected ONT reads
+    # --nano-hq     = high quality ONT reads that have been base-called with Guppy5+
+    # --pacbio-raw  = PacBio CLR reads
+    # --pacbio-corr = corrected CLR reads
+    #--pacbio-hifi  = PacBio HiFi reads
 
-minimap2Parameter: map-ont #'map-pb' for PacBio CLR reads or 'map-ont' for ONT long reads or 'map-hifi' for PacBio HiFi reads
+minimap2Parameter: map-ont
+    # map-pb   = PacBio CLR reads
+    # map-ont  = ONT long reads 
+    # map-hifi = PacBio HiFi reads
 
-chloroplastSize: 135000 #rough estimate
-chloroplastSizePC: 0.85
-chloroplastIdentityPC: 0.85
 
-cpus: 6
+chloroplastSize: 135000  # estimate of chloroplast genome size
+
+# Chlorplast QC check parameters
+chloroplastSizePC: 0.85     # If assembled genome >(chloroplastSize*chloroplastSizePC), will not pass.
+chloroplastIdentityPC: 0.85 # If assembled genome > this % the same as reference, will not pass
+
+cpus: 6 # Max CPUs to use in a job.
