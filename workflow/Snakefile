@@ -10,14 +10,14 @@ shell.prefix("set -euo pipefail; ")
 ##########
 # local rules
 # these rules will be performed within the main job when using a cluster
-#localrules: all,
-#    rotate_chloroplast,
-#    check_identity,
-#    check_size,
-#    sub_sample,
-#    extract_aligned_reads,
-#    index_reference,
-#    double_chloro_genome
+localrules: all,
+    rotate_chloroplast,
+    check_identity,
+    check_size,
+    sub_sample,
+    extract_aligned_reads,
+    index_reference,
+    double_chloro_genome
 #    download_chloro_genome, this job need to be on copyq.
 
 
@@ -37,6 +37,8 @@ rule all:
     input:
         expand("chloro_assembly/reference/{sample}_index.fasta", sample=samples),
         expand("chloro_assembly/{sample}~chloroplast.fasta", sample=samples)
+    benchmark:
+        "chloro_assembly/benchmark/total/{sample}_full_benchmark.txt"
 
 ##########
 # We have a chloroplast genome.
@@ -54,6 +56,8 @@ rule rotate_chloroplast:
         name = "{sample}~chloroplast"
     conda:
         "envs/rotate_chloroplast.yml"
+    benchmark:
+        "chloro_assembly/benchmark/rotate_chloroplast/{sample}_benchmark.txt"
     shell:
         """
         if [ -s {input.genome} ]
@@ -89,6 +93,8 @@ rule check_identity:
         "chloro_assembly/validated/{sample}~chloroplast.fasta"
     conda:
         "envs/check_identity.yml"
+    benchmark:
+        "chloro_assembly/benchmark/check_identity/{sample}_benchmark.txt"
     shell:
         """
         echo {input.query}
@@ -117,6 +123,8 @@ rule check_size:
         "chloro_assembly/checkSize/{sample}.fasta"
     conda:
         "envs/check_size.yml"
+    benchmark:
+        "chloro_assembly/benchmark/check_size/{sample}_benchmark.txt"
     shell:
         """
         bioawk -c fastx 'BEGIN{{lower = {config[chloroplastSize]} * {config[chloroplastSizePC]}; upper = {config[chloroplastSize]} * (2-{config[chloroplastSizePC]})}}{{if(length($seq) > lower && length($seq) < upper){{print \">\"$name\"\\n\"$seq}}}}' {input.query} > {output}
@@ -138,6 +146,8 @@ rule assemble:
         config["cpus"]
     conda:
         "envs/assemble.yml"
+    benchmark:
+        "chloro_assembly/benchmark/assemble/{sample}_benchmark.txt"
     shell:
         """
         mkdir -p chloro_assembly/assemblies
@@ -156,6 +166,8 @@ rule sub_sample:
         fastFile = "chloro_assembly/subReads/{sample}~assemble." + config["fast_file"]
     conda:
         "envs/sub_sample.yml"
+    benchmark:
+        "chloro_assembly/benchmark/sub_sample/{sample}_benchmark.txt"
     shell:
         """
         seqtk sample -s {config[randSeed]} {input} {config[numberReads]} > {output}
@@ -174,6 +186,8 @@ rule extract_aligned_reads:
         fastFile = "chloro_assembly/subReads/{sample}~all." + config["fast_file"]
     conda:
         "envs/extract_aligned_reads.yml"
+    benchmark:
+        "chloro_assembly/benchmark/extract_aligned_reads/{sample}_benchmark.txt"
     shell:
         """
         zcat {input.sam} | cut -f1 | sort | uniq > {output.list}
@@ -194,6 +208,8 @@ rule align:
         config["cpus"]
     conda:
         "envs/align.yml"
+    benchmark:
+        "chloro_assembly/benchmark/align/{sample}_benchmark.txt"
     shell:
         """
         minimap2 -ax {config[minimap2Parameter]} -t {threads} {input.reference} {input.fastFile} \
@@ -212,6 +228,8 @@ rule index_reference:
         "chloro_assembly/reference/{sample}_index.fasta"
     conda:
         "envs/index_reference.yml"
+    benchmark:
+        "chloro_assembly/benchmark/index_reference/{sample}_benchmark.txt"
     shell:
         """
         awk 'NR == 1 {{print substr($1,2,length($1)), \"0\", \"10000\"}}' {input} > chloro_assembly/reference/index.bed
@@ -229,6 +247,8 @@ rule double_chloro_genome:
         "chloro_assembly/reference/{sample}_single.fasta"
     output:
         "chloro_assembly/reference/{sample}_circular.fasta"
+    benchmark:
+        "chloro_assembly/benchmark/double_chloro_genome/{sample}_benchmark.txt"
     shell:
         """
         head -n 1 {input} > {output}
@@ -241,16 +261,21 @@ rule double_chloro_genome:
 # Download reference chloroplast genome
 #  This genome is used to find chloroplast genomes within your read set
 #  Need to install BioPython before this rule runs --> installed as part of Snakemake env.
-#
-#from snakemake.remote.NCBI import RemoteProvider as NCBIRemoteProvider
-#NCBI = NCBIRemoteProvider(email=config["my_Email"]) # email required by NCBI to prevent abuse
-#NCBI_GENOME = config["NCBI_reference_accession"] +".fasta"
-#rule download_chloro_genome:
-#    input:
-#        NCBI.remote(NCBI_GENOME, db="nuccore"),
-#    output:
-#        "chloro_assembly/reference/{sample}_single.fasta"
-#    shell:
-#        """
-#        mv {input} {output}
-#        """
+#  If the computer or remote HPC you are working from has restricted access to external
+#  data sources, you will need to comment out each line of this rule and manually download
+#  each reference genome of interest and save it so it is identical to 'output' below
+
+from snakemake.remote.NCBI import RemoteProvider as NCBIRemoteProvider
+NCBI = NCBIRemoteProvider(email=config["my_Email"]) # email required by NCBI to prevent abuse
+NCBI_GENOME = config["NCBI_reference_accession"] +".fasta"
+rule download_chloro_genome:
+    input:
+        NCBI.remote(NCBI_GENOME, db="nuccore"),
+    output:
+        "chloro_assembly/reference/{sample}_single.fasta"
+    benchmark:
+        "chloro_assembly/benchmark/download_chloro_genome/{sample}_benchmark.txt"
+    shell:
+        """
+        mv {input} {output}
+        """
