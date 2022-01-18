@@ -23,7 +23,7 @@ minimap2Parameter: map-ont
 chloroplastSize: 135000  # estimate of chloroplast genome size
 
 # Chlorplast QC check parameters
-chloroplastSizePC: 0.85     # If assembled genome >(chloroplastSize*chloroplastSizePC), will not pass.
-chloroplastIdentityPC: 0.85 # If assembled genome > this % the same as reference, will not pass
+chloroplastSizePC: 0.85     # If assembled genome <(chloroplastSize*chloroplastSizePC), will not pass.
+chloroplastIdentityPC: 0.85 # If the identity (measured by DNADiff) of assembled genome to reference genome <chloroplastIdentityPC, will not pass
 
 cpus: 6 # Max CPUs to use in a job.
