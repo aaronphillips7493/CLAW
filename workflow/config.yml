@@ -1,4 +1,4 @@
-NCBI_reference_accession: NC_031333.1  #NC_035996.1
+NCBI_reference_accession: NC_014063.1  #NC_031333.1  #NC_035996.1
 my_Email: aaron.phillips@adelaide.edu.au
 
 fast_file: fastq # fastq/fasta
