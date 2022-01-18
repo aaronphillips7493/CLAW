@@ -1,0 +1,37 @@
+__default__ :
+        job-name      : "{rule}"
+        output        : "logs/{rule}/{wildcards}.out"
+        ntasks        : 1
+        cpus-per-task : 1
+        mem           : "200M"
+        time          : "00-00:5:00"
+        gres          : null
+        account       : "my_account"
+        partition     : "my_partition"
+        nodes         : 1
+
+# Override the above defaults with job specific values
+#bwa_mem :
+#        cpus-per-task : 16
+#        mem           : "10000M"
+#        time          : "00-01:00:00"
+
+# Job specific resource requirements can be passed from the rule, in the Snakefile, via the "resources" keyword
+#bwa_mem :
+#        cpus-per-task : 4
+#        mem           : "{resources.mem_mb}M"
+#        time          : "00-{resources.time_hrs}:00:00"
+
+index_reference:
+        mem          : 3G 
+        time         : "00-00:20:00"
+
+align :
+        cpus-per-task : 6
+        mem           : 5G
+        time          : "00-00:35:00"
+
+assemble :
+        cpus-per-task : 8
+        mem           : 15G
+        time          : "00-01:00:00"

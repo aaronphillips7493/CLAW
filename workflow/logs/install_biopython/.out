@@ -1,0 +1,28 @@
+Building DAG of jobs...
+Using shell: /bin/bash
+Provided cores: 2
+Rules claiming more threads will be scaled down.
+Select jobs to execute...
+
+[Tue Dec 21 15:21:51 2021]
+rule install_biopython:
+    output: installing.biopython.done
+    jobid: 0
+    resources: mem_mb=1000, disk_mb=1000, tmpdir=/tmp/lls_12304596
+
+Activating conda environment: /hpcfs/users/a1779884/rice_genomics/long-read-chloroplast-assembly/workflow/.snakemake/conda/4c31ed0fe04e59b7d84f226e7a09602f
+import: unable to open X server `' @ error/import.c/ImportImageCommand/369.
+[Tue Dec 21 15:21:52 2021]
+Error in rule install_biopython:
+    jobid: 0
+    output: installing.biopython.done
+    conda-env: /hpcfs/users/a1779884/rice_genomics/long-read-chloroplast-assembly/workflow/.snakemake/conda/4c31ed0fe04e59b7d84f226e7a09602f
+    shell:
+        
+        python
+        import Bio
+        
+        (one of the commands exited with non-zero exit code; note that snakemake uses bash strict mode!)
+
+Shutting down, this might take some time.
+Exiting because a job execution failed. Look above for error message

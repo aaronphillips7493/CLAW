@@ -1,0 +1,81 @@
+#!/usr/bin/env bash
+#Submit this clustering script for sbatch to snakemake with:
+#    snakemake -j 99 --debug --immediate-submit --cluster 'Snakefile_sbatch.sh {dependencies}'
+#
+
+#sbatch --time {cluster.time} --partition {cluster.partition} --account {cluster.account} --ntasks {cluster.ntasks} --cpus-per-task {cluster.cpus} --mem {cluster.mem} --output {cluster.output}
+
+OPTIND=1         # Reset in case getopts has been used previously in the shell.
+
+# Initialize our own variables:
+SBATCH_ARGS="--nice "
+DEP_STRING=""
+
+# getopts can only handle short forms of arguments
+# We'll just process those sbatch arguments which need some pre-processing
+# everything else will get sent straight to sbatch
+#>&2 echo "*${0}*"
+while getopts ":d:o:e:m:g:" opt; do
+    case "${opt}" in
+    d)
+        DEPS=${OPTARG}
+        ;;
+    m)
+        SBATCH_ARGS+=" --mem ${OPTARG}"
+        ;;
+    g)
+	# Parse `-g` as being for sbatch's `--gres`
+        if [ "${OPTARG}" != "None" ]; then
+          SBATCH_ARGS+=" --gres ${OPTARG}"
+        fi
+        ;;
+    o|e)
+        FILE=${OPTARG}
+        if [[ ${FILE} = *"/"* ]]; then
+          # specified output/error (-o or -e) file contains a directory seperator, ensure the dir exists
+          mkdir -p "${FILE%/*}"
+        fi
+        SBATCH_ARGS+=" -${opt} ${OPTARG}"
+        ;;
+    *)
+        # Any other arguments will be passed to sbatch as they are
+        SBATCH_ARGS+=" -${OPTARG} ${!OPTIND}"
+        OPTIND=$((OPTIND+1))
+        ;;
+    esac
+done
+shift $((OPTIND-1))
+[ "${1:-}" = "--" ] && shift
+
+# If DEPS is non-empty, then construct a DEP_STRING
+if [[ ! -z "${DEPS}" ]]; then
+  DEP_STRING="--dependency=afterok:${DEPS// /:}"
+fi
+
+#export DEPS
+export DEP_STRING
+export SBATCH_ARGS
+
+# Generic retry function with up to 5 retry attempts
+function retry {
+  local max_attempts=5
+  local delay_sec=5
+
+  local attempt=1
+  while true; do
+    "$@" && break || {
+      if [[ ${attempt} -lt ${max_attempts} ]]; then
+        >&2 echo "WARN: Command ($@) failed attempt ${attempt} of ${max_attempts}:"
+        sleep ${delay_sec}
+      else
+        >&2 echo "ERROR: Command ($@) failed after ${attempt} attempt(s)."
+        exit 1
+      fi
+      ((attempt++))
+    }
+  done
+}
+
+set -o pipefail
+JOBID=$(retry sbatch ${DEP_STRING} ${SBATCH_ARGS} $@ | cut -f4 -d' ')
+echo -n "${JOBID}"
