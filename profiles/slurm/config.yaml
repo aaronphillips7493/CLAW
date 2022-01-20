@@ -1,5 +1,5 @@
 cluster:
-  "profiles/slurm/submit -J {cluster.job-name} -t {cluster.time} -p {cluster.partition} -A {cluster.account} -n {cluster.ntasks} -c {cluster.cpus-per-task} -m {cluster.mem} -o {cluster.output} -d '{dependencies}'"
+  "profiles/slurm/submit -J {cluster.job-name} -t {cluster.time} -p {cluster.partition} -A {cluster.account} -n {cluster.ntasks} -c {cluster.cpus-per-task} -m {cluster.mem} -o {cluster.output} -g {cluster.gres} -d '{dependencies}' -N '{cluster.nodes}'"
 cluster-status:
   "status"
 jobscript:
@@ -13,7 +13,7 @@ max-status-checks-per-second:
 local-cores:
   1
 jobs:
-  240
+  100
 cluster-config:
  - "cluster-configs/default.yaml"
  - "cluster-configs/phoenix.yaml"

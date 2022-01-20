@@ -1,11 +1,12 @@
 NCBI_reference_accession: NC_014063.1  #NC_031333.1  #NC_035996.1
 my_Email: aaron.phillips@adelaide.edu.au
 
-fast_file: fastq # fastq/fasta
-compression: .gz # .gz or blank
+fast_file: fastq # fastq/fasta/fastq.gz/fasta.gz
 
 randSeed: 100
 numberReads: 1500
+readMinLength: 5000
+
 flyeParameter: --nano-raw 
     # --nano-raw    = ONT reads base-called prior to the release of Guppy5+
     # --nano-corr   = corrected ONT reads
