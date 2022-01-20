@@ -1,0 +1,3 @@
+__default__ :
+        account       : waite
+        partition     : batch
