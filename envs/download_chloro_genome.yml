@@ -1,7 +1,0 @@
-channels:
- - bioconda
- - conda-forge
- - defaults
-dependencies:
- - biopython=1.79
- - entrez-direct=16.2

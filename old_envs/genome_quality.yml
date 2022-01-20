@@ -1,8 +1,0 @@
-name: genome_quality 
-channels:
- - bioconda
- - conda-forge
- - defaults
-dependencies:
- - dgenies=1.2.0.1
- - filtlong=0.2.0
