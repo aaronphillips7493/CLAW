@@ -1,6 +1,3 @@
-## snakemake --dag -s sf-chloro-1 | dot -Tsvg > dag.svg
-## snakemake -s sf-chloro-1 --cores 7
-
 import json
 configfile: "config.yml"
 
@@ -12,14 +9,19 @@ shell.prefix("set -euo pipefail; ")
 # these rules will be performed within the main job when using a cluster
 localrules: all,
     rotate_chloroplast,
-#    check_identity,
-#    check_size,
+    dot_plot,
     sub_sample,
     extract_aligned_reads,
     index_reference,
     double_chloro_genome,
-    dot_plot
-#    download_chloro_genome, this job need to be on copyq.
+    rotate_chloroplast
+
+# need internet access
+#   download_chloro_genome
+
+# big jobs, when using HPC run in queue.
+#   assemble
+#   align
 
 
 
