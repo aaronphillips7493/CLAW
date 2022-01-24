@@ -1,0 +1,17 @@
+#!/bin/bash
+#PBS -P xe2
+#PBS -q copyq
+#PBS -l walltime=10:00:00
+#PBS -l mem=4G
+#PBS -l jobfs=100GB
+#PBS -l ncpus=1
+#PBS -l storage=scratch/xe2+gdata/xe2
+#PBS -l wd
+
+eval "$(/g/data/xe2/gadi/conda/bin/conda shell.zsh hook)" ##useconda
+conda activate sf-snake
+
+set -euo pipefail # safe mode
+set -x # logging
+
+bash runGadi.sh

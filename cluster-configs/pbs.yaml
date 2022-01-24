@@ -1,0 +1,27 @@
+__default__:
+    project     : xe2
+    storage     : "gdata/xe2+scratch/xe2"
+    job-name    : "{rule}"
+    mem         : "4G"
+    time        : "1:00:00"
+    ncpus       : "1"
+    queue       : "express"
+    hdd         : "10G"
+
+download_chloro_genome:
+    queue   : "copyq"
+
+align:
+    mem         : "24G"
+    time        : "5:00:00"
+    ncpus       : "6"
+    queue       : "normal"
+    hdd         : "100G"
+
+assemble:
+    mem         : "24G"
+    time        : "5:00:00"
+    ncpus       : "6"
+    queue       : "normal"
+    hdd         : "100G"
+
