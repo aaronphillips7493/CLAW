@@ -6,7 +6,9 @@ fast_file: fastq # fastq/fasta/fastq.gz/fasta.gz
 randSeed: 100
 numberReads: 1500
 readMinLength: 5000
-
+readMaxLength: 100000 # longest read that will be used for assembly.
+                    # We dont want reads that are bigger than the expected chloroplast size.
+                    
 flyeParameter: --nano-raw 
     # --nano-raw    = ONT reads base-called prior to the release of Guppy5+
     # --nano-corr   = corrected ONT reads
