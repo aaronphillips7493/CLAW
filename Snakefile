@@ -184,7 +184,10 @@ rule extract_aligned_reads:
     shell:
         """
         zcat {input.sam} | cut -f1 | sort | uniq > {output.list}
-        seqtk subseq {input.fastFile} {output.list} | bioawk -c fastx 'length($seq > {config[readMinLength]}){{print \">\"$name\"\\n\"$seq}}' > {output.fastFile}
+        seqtk subseq {input.fastFile} {output.list} \
+            | bioawk -c fastx \
+                'length($seq) > {config[readMinLength]} && length($seq) < {config[readMaxLength]} \
+                {{print \">\"$name\"\\n\"$seq}}' > {output.fastFile}
         """
 
 ##########
