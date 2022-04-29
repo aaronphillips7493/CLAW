@@ -7,14 +7,14 @@ shell.prefix("set -euo pipefail; ")
 ##########
 # local rules
 # these rules will be performed within the main job when using a cluster
-localrules: all,
-    rotate_chloroplast,
-    dot_plot,
-    sub_sample,
-    extract_aligned_reads,
-    index_reference,
-    double_chloro_genome,
-    rotate_chloroplast
+#localrules: all,
+#    rotate_chloroplast,
+#    dot_plot,
+#    sub_sample,
+#    extract_aligned_reads,
+#    index_reference,
+#    double_chloro_genome,
+#    rotate_chloroplast
 
 # need internet access
 #   download_chloro_genome
@@ -57,6 +57,8 @@ rule rotate_chloroplast:
     params:
         dir = "chloro_assembly/{sample}~tmp",
         name = "{sample}~chloroplast"
+    conda:
+        "envs/rotate_chloroplast.yml"
     benchmark:
         "chloro_assembly/benchmark/rotate_chloroplast/{sample}_benchmark.txt"
     shell:
@@ -73,7 +75,12 @@ rule rotate_chloroplast:
                 show-coords -THrd {params.dir}/out.delta > {params.dir}/out.coords
                 start=`sort -k6,6hr {params.dir}/out.coords | head -n 1| cut -f3`
                 echo ">$contig" >> {output}
-                if [ ! -z $start ]
+                echo "$start XXX"
+                if [ $start == 1 ]
+                then
+                    grep -v '^>' {params.dir}/$contig.fasta | tr -d '\n' >> {output}
+                    echo "" >> {output} 
+                elif [ ! -z $start ]
                 then
                     grep -v '^>' {params.dir}/$contig.fasta | tr -d '\n' > {params.dir}/temp.fasta
                     cut -c ${{start}}- {params.dir}/temp.fasta > {params.dir}/start.fasta
@@ -118,8 +125,7 @@ rule dot_plot:
         nucmer {input.reference} {input.query} -p {params}
         # delta-filter -1 -i 50 {params}.delta > {params}.1delta
         mummerplot --fat --png --large {params}.delta -p {params}
-        rm {params}.delta {params}.filter {params}.fplot {params}.gp {params}.rplot
-
+        rm {params}.filter {params}.fplot {params}.gp {params}.rplot
         """
 
 
@@ -144,7 +150,7 @@ rule assemble:
     shell:
         """
         mkdir -p chloro_assembly/assemblies
-        flye --threads {threads} -o {params.assembly} {config[flyeParameter]} {input}
+        flye --threads {threads} --genome-size {config[chloroplastSize]} -o {params.assembly} {config[flyeParameter]} {input}
         """
 
 ##########
@@ -186,7 +192,7 @@ rule extract_aligned_reads:
         zcat {input.sam} | cut -f1 | sort | uniq > {output.list}
         seqtk subseq {input.fastFile} {output.list} \
             | bioawk -c fastx \
-                'length($seq) > {config[readMinLength]} && length($seq) < {config[readMaxLength]} \
+                'length($seq) > {config[readMinLength]} && length($seq) < {config[chloroplastSize]} \
                 {{print \">\"$name\"\\n\"$seq}}' > {output.fastFile}
         """
 
@@ -262,19 +268,19 @@ rule double_chloro_genome:
 #  data sources, you will need to comment out each line of this rule and manually download
 #  each reference genome of interest and save it so it is identical to 'output' below
 
-from snakemake.remote.NCBI import RemoteProvider as NCBIRemoteProvider
-NCBI = NCBIRemoteProvider(email=config["my_Email"]) # email required by NCBI to prevent abuse
-rule download_chloro_genome:
-    input:
-        NCBI.remote(config["NCBI_reference_accession"] +".fasta", db="nuccore")
-    output:
-        "chloro_assembly/reference/" + config["NCBI_reference_accession"] + "_single.fasta"
-    benchmark:
-        "chloro_assembly/benchmark/download_chloro_genome/" + config["NCBI_reference_accession"] + "_benchmark.txt"
-    shell:
-        """
-        mv {input} {output}
-        """
+#from snakemake.remote.NCBI import RemoteProvider as NCBIRemoteProvider
+#NCBI = NCBIRemoteProvider(email=config["my_Email"]) # email required by NCBI to prevent abuse
+#rule download_chloro_genome:
+#    input:
+#        NCBI.remote(config["NCBI_reference_accession"] +".fasta", db="nuccore")
+#    output:
+#        "chloro_assembly/reference/" + config["NCBI_reference_accession"] + "_single.fasta"
+#    benchmark:
+#        "chloro_assembly/benchmark/download_chloro_genome/" + config["NCBI_reference_accession"] + "_benchmark.txt"
+#    shell:
+#        """
+#        mv {input} {output}
+#        """
 
 
 

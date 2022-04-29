@@ -4,3 +4,4 @@ channels:
  - defaults
 dependencies:
  - mummer=3.23
+ - seqtk=1.3
