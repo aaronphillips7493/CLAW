@@ -5,3 +5,4 @@ channels:
 dependencies:
  - flye=2.9
  - python=3.9.4
+ - unicycler

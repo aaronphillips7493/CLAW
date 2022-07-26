@@ -6,14 +6,22 @@ jobscript:
   "jobscript"
 restart-times:
   0
+latency-wait:
+  30
 max-jobs-per-second:
   5
 max-status-checks-per-second:
   5
 local-cores:
-  1
+  4
 jobs:
   100
 cluster-config:
  - "cluster-configs/default.yaml"
  - "cluster-configs/phoenix.yaml"
+keep-going:
+  true
+use-conda:
+  true
+conda-frontend:
+  "mamba"

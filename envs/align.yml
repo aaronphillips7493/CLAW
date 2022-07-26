@@ -5,3 +5,5 @@ channels:
 dependencies:
  - samtools=1.14
  - minimap2=2.23
+ - python=3.9.4
+ - deeptools=3.5.1

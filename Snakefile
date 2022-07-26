@@ -23,23 +23,31 @@ shell.prefix("set -euo pipefail; ")
 #   assemble
 #   align
 
-
+##########
+# Generate random seed for subsampling reads
+import random
+RAND_SEED= config["randSeed"]
+try: RAND_SEED
+except NameError: RAND_SEED = random.seed()
 
 ##########
 # avoid recursion loop
-wildcard_constraints:
-    sample="[^/]+",
+#wildcard_constraints:
+#    sample="[^/]+",
 
 ##########
 # Find all fasta/fastq/fasta.gz/fastq.gz files
 # continaing reads that we want to build our genome from
 # and attempt assembly of chloroplast genome
 #
-samples, = glob_wildcards("chloro_assembly/reads/{file}." + config["fast_file"])
+samples = glob_wildcards("chloro_assembly/reads/{file}." + config["fast_file"])
+
 rule all:
     input:
         "chloro_assembly/reference/"+config["NCBI_reference_accession"]+"_index.fasta",
-        expand("chloro_assembly/dotPlots/{sample}.png", sample=samples)
+        expand("chloro_assembly/dotPlots/{sample}_{assembler}.png", sample=samples, assembler=config["assembler"],),
+        expand("chloro_assembly/alignments/{sample}_subset_vs_{assembler}_assembly_sorted.bw", sample=samples, assembler=config["assembler"],),
+        expand("chloro_assembly/alignments/{sample}_subset_vs_ref_sorted.bw", sample=samples,),
         #expand("chloro_assembly/{sample}~chloroplast.fasta", sample=samples)
 
 ##########
@@ -51,16 +59,16 @@ rule all:
 rule rotate_chloroplast:
     input:
         index = "chloro_assembly/reference/"+config["NCBI_reference_accession"]+"_index.fasta",
-        genome = "chloro_assembly/assemblies/{sample}/assembly.fasta"
+        genome = "chloro_assembly/assemblies/{sample}_{assembler}/assembly.fasta"
     output:
-        "chloro_assembly/{sample}~chloroplast.fasta"
+        "chloro_assembly/{sample}~{assembler}_chloroplast.fasta",
     params:
-        dir = "chloro_assembly/{sample}~tmp",
-        name = "{sample}~chloroplast"
+        dir = "chloro_assembly/{sample}~{assembler}_tmp",
+        name = "{sample}~{assembler}_chloroplast"
     conda:
         "envs/rotate_chloroplast.yml"
     benchmark:
-        "chloro_assembly/benchmark/rotate_chloroplast/{sample}_benchmark.txt"
+        "chloro_assembly/benchmark/rotate_chloroplast/{sample}_{assembler}_benchmark.txt"
     shell:
         """
         if [ -s {input.genome} ]
@@ -111,15 +119,15 @@ rule rotate_chloroplast:
 rule dot_plot:
     input:
         reference = "chloro_assembly/reference/"+config["NCBI_reference_accession"]+"_single.fasta",
-        query = "chloro_assembly/{sample}~chloroplast.fasta"
+        query = "chloro_assembly/{sample}~{assembler}_chloroplast.fasta"
     output:
-        "chloro_assembly/dotPlots/{sample}.png"
+        "chloro_assembly/dotPlots/{sample}_{assembler}.png"
     params:
-        "chloro_assembly/dotPlots/{sample}"
+        "chloro_assembly/dotPlots/{sample}_{assembler}"
     conda:
         "envs/dot_plot.yml"
     benchmark:
-        "chloro_assembly/benchmark/dot_plot/{sample}_benchmark.txt"
+        "chloro_assembly/benchmark/dot_plot/{sample}_{assembler}_benchmark.txt"
     shell:
         """
         nucmer {input.reference} {input.query} -p {params}
@@ -128,29 +136,151 @@ rule dot_plot:
         rm {params}.filter {params}.fplot {params}.gp {params}.rplot
         """
 
+##########
+# To see which parts of the assembled genomes are covered by the read subset
+# View in a genome browser (e.g. IGV; load assembled genome + .bw)
+
+rule bam_coverage_assembly:
+    input:
+        "chloro_assembly/alignments/{sample}_subset_vs_{assembler}_assembly_sorted.bam",
+    output:
+        bigwig = "chloro_assembly/alignments/{sample}_subset_vs_{assembler}_assembly_sorted.bw"
+    conda:
+        "envs/align.yml"
+    benchmark:
+        "chloro_assembly/benchmark/bam_coverage_assembly/{sample}_{assembler}_benchmark.txt"
+    shell:
+        """
+        bamCoverage -b {input} -o {output.bigwig}
+        """
+
+rule sort_assembly_alignment:
+    input:
+        "chloro_assembly/alignments/{sample}_subset_vs_{assembler}_assembly.bam",
+    output:
+        bam = "chloro_assembly/alignments/{sample}_subset_vs_{assembler}_assembly_sorted.bam",
+    conda:
+        "envs/align.yml"
+    benchmark:
+        "chloro_assembly/benchmark/sort_assembly_alignment/{sample}_{assembler}_benchmark.txt"
+    shell:
+        """
+        samtools sort -o {output.bam} {input}
+        samtools index {output.bam}
+        """
+
+rule align_subset_to_assembly:
+    input:
+        fastFile = "chloro_assembly/subReads/{sample}~assemble.fasta",
+        assembly = "chloro_assembly/assemblies/{sample}_{assembler}/assembly.fasta"
+    output:
+        bam = temp("chloro_assembly/alignments/{sample}_subset_vs_{assembler}_assembly.bam"),
+    threads:
+        config["cpus"]
+    conda:
+        "envs/align.yml"
+    benchmark:
+        "chloro_assembly/benchmark/align_subset_to_assembly/{sample}_{assembler}_benchmark.txt"
+    shell:
+        """
+        minimap2 -ax {config[minimap2Parameter]} -t {threads} {input.assembly} {input.fastFile} \
+            | samtools view -b -F 4 -@ {threads} \
+            > {output.bam}
+        """
 
 ##########
 # Assemble our subset of chloroplast reads.
 # If sucessful this will produce our chloroplast genome
 # If not we will have to rerun using a different random seed and/or different number of reads.
 #
-rule assemble:
+rule unicycler_assemble:
     input:
         "chloro_assembly/subReads/{sample}~assemble.fasta"
     params:
-        assembly = "chloro_assembly/assemblies/{sample}"
+        assembly = "chloro_assembly/assemblies/{sample}_unicycler",
     output:
-        "chloro_assembly/assemblies/{sample}/assembly.fasta"
+        "chloro_assembly/assemblies/{sample}_unicycler/assembly.fasta",
     threads:
         config["cpus"]
     conda:
         "envs/assemble.yml"
     benchmark:
-        "chloro_assembly/benchmark/assemble/{sample}_benchmark.txt"
+        "chloro_assembly/benchmark/unicycler_assemble/{sample}_unicycler_benchmark.txt"
     shell:
         """
-        mkdir -p chloro_assembly/assemblies
-        flye --threads {threads} --genome-size {config[chloroplastSize]} -o {params.assembly} {config[flyeParameter]} {input}
+        mkdir -p chloro_assembly/assemblies/
+        unicycler -l {input} -o {params.assembly}
+        """
+
+rule flye_assemble:
+    input:
+        "chloro_assembly/subReads/{sample}~assemble.fasta"
+    params:
+        flye_assembly = "chloro_assembly/assemblies/{sample}_flye",
+    output:
+        "chloro_assembly/assemblies/{sample}_flye/assembly.fasta",
+    threads:
+        config["cpus"]
+    conda:
+        "envs/assemble.yml"
+    benchmark:
+        "chloro_assembly/benchmark/flye_assemble/{sample}_flye_benchmark.txt"
+    shell:
+        """
+        mkdir -p chloro_assembly/assemblies/
+        flye --threads {threads} --genome-size {config[chloroplastSize]} -o {params.flye_assembly} {config[flyeParameter]} {input}
+        """
+
+##########
+# To see which parts of the ref genome are covered by the read subset
+# View in a genome browser (e.g. IGV; load ref genome + .bw)
+
+rule bam_coverage_ref:
+    input:
+        "chloro_assembly/alignments/{sample}_subset_vs_ref_sorted.bam",
+    output:
+        bigwig = "chloro_assembly/alignments/{sample}_subset_vs_ref_sorted.bw"
+    conda:
+        "envs/align.yml"
+    benchmark:
+        "chloro_assembly/benchmark/bam_coverage_ref/{sample}_benchmark.txt"
+    shell:
+        """
+        bamCoverage -b {input} -o {output.bigwig}
+        """
+
+rule sort_ref_alignment:
+    input:
+        "chloro_assembly/alignments/{sample}_subset_vs_ref.bam",
+    output:
+        bam = "chloro_assembly/alignments/{sample}_subset_vs_ref_sorted.bam",
+    conda:
+        "envs/align.yml"
+    benchmark:
+        "chloro_assembly/benchmark/sort_ref_alignment/{sample}_benchmark.txt"
+    shell:
+        """
+        samtools sort -o {output.bam} {input}
+        samtools index {output.bam}
+        """
+
+rule align_subset_to_ref:
+    input:
+        fastFile = "chloro_assembly/subReads/{sample}~assemble.fasta",
+        reference = "chloro_assembly/reference/"+config["NCBI_reference_accession"]+"_circular.fasta"
+    output:
+        bam = "chloro_assembly/alignments/{sample}_subset_vs_ref.bam",
+    threads:
+        config["cpus"]
+    conda:
+        "envs/align.yml"
+    benchmark:
+        "chloro_assembly/benchmark/align_subset_to_ref/{sample}_benchmark.txt"
+    shell:
+        """
+        minimap2 -ax {config[minimap2Parameter]} -t {threads} {input.reference} {input.fastFile} \
+            | samtools view -b -F 4 -@ {threads} \
+            > {output.bam}
         """
 
 ##########
@@ -163,13 +293,16 @@ rule sub_sample:
         "chloro_assembly/subReads/{sample}~all.fasta"
     output:
         fastFile = "chloro_assembly/subReads/{sample}~assemble.fasta"
+    params:
+        random_seed = RAND_SEED,
     conda:
         "envs/sub_sample.yml"
     benchmark:
         "chloro_assembly/benchmark/sub_sample/{sample}_benchmark.txt"
     shell:
         """
-        seqtk sample -s {config[randSeed]} {input} {config[numberReads]} > {output}
+        echo {params.random_seed}
+        seqtk sample -s {params.random_seed} {input} {config[numberReads]} > {output}
         """
 
 ##########
@@ -178,7 +311,7 @@ rule sub_sample:
 #
 rule extract_aligned_reads:
     input:
-        sam = "chloro_assembly/alignments/{sample}.sam.gz",
+        bam = "chloro_assembly/alignments/{sample}.bam",
         fastFile = "chloro_assembly/reads/{sample}." + config["fast_file"]
     output:
         list = "chloro_assembly/alignments/{sample}~all.lst",
@@ -189,7 +322,7 @@ rule extract_aligned_reads:
         "chloro_assembly/benchmark/extract_aligned_reads/{sample}_benchmark.txt"
     shell:
         """
-        zcat {input.sam} | cut -f1 | sort | uniq > {output.list}
+        samtools view {input.bam} | cut -f1 | sort | uniq > {output.list}
         seqtk subseq {input.fastFile} {output.list} \
             | bioawk -c fastx \
                 'length($seq) > {config[readMinLength]} && length($seq) < {config[chloroplastSize]} \
@@ -205,7 +338,7 @@ rule align:
         fastFile = "chloro_assembly/reads/{sample}." + config["fast_file"],
         reference = "chloro_assembly/reference/"+config["NCBI_reference_accession"]+"_circular.fasta"
     output:
-        "chloro_assembly/alignments/{sample}.sam.gz"
+        bam = "chloro_assembly/alignments/{sample}.bam",
     threads:
         config["cpus"]
     conda:
@@ -215,8 +348,8 @@ rule align:
     shell:
         """
         minimap2 -ax {config[minimap2Parameter]} -t {threads} {input.reference} {input.fastFile} \
-            | samtools view -F 4 -@ {threads} \
-            | gzip > {output}
+            | samtools view -b -F 4 -@ {threads} \
+            | samtools sort -o {output.bam}
         """
 
 ##########
