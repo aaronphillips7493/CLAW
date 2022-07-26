@@ -32,15 +32,16 @@ except NameError: RAND_SEED = random.seed()
 
 ##########
 # avoid recursion loop
-#wildcard_constraints:
-#    sample="[^/]+",
+wildcard_constraints:
+    sample="[^/]+",
 
 ##########
 # Find all fasta/fastq/fasta.gz/fastq.gz files
 # continaing reads that we want to build our genome from
 # and attempt assembly of chloroplast genome
 #
-samples = glob_wildcards("chloro_assembly/reads/{file}." + config["fast_file"])
+samples = glob_wildcards("chloro_assembly/reads/{file}." + config["fast_file"]).file
+print(samples)
 
 rule all:
     input:
