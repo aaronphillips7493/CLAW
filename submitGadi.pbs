@@ -1,6 +1,6 @@
 #!/bin/bash
 #PBS -P xe2
-#PBS -q copyq
+#PBS -q normal
 #PBS -l walltime=10:00:00
 #PBS -l mem=4G
 #PBS -l jobfs=100GB
@@ -10,8 +10,28 @@
 
 eval "$(/g/data/xe2/gadi/conda/bin/conda shell.zsh hook)" ##useconda
 conda activate sf-snake
-
 set -euo pipefail # safe mode
 set -x # logging
 
-bash runGadi.sh
+TARGET=${TARGET:-all}
+
+QSUB="qsub -q {cluster.queue} -l ncpus={threads} -l jobfs={cluster.hdd}"
+QSUB="$QSUB -l walltime={cluster.time} -l mem={cluster.mem} -N {rule} -l storage={cluster.storage}"
+QSUB="$QSUB -l wd -j oe -P {cluster.project}"
+
+snakemake										\
+	--use-conda                               	\
+    -j 1000                                   	\
+    --max-jobs-per-second 2                   	\
+    --cluster-config cluster-configs/pbs.yaml 	\
+    --local-cores ${PBS_NCPUS:-1}             	\
+    --js profiles/pbs/jobscript.sh            	\
+    --nolock                                  	\
+    --rerun-incomplete                        	\
+    --keep-going                              	\
+    --cluster "$QSUB"                         	\
+    "$TARGET"
+
+
+# Before running this, initialise conda environments by running this is a copyq (internet access) job:
+# snakemake -j 1 --conda-create-envs-only --use-conda
