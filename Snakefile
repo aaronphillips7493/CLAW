@@ -7,14 +7,14 @@ shell.prefix("set -euo pipefail; ")
 ##########
 # local rules
 # these rules will be performed within the main job when using a cluster
-#localrules: all,
-#    rotate_chloroplast,
-#    dot_plot,
-#    sub_sample,
-#    extract_aligned_reads,
-#    index_reference,
-#    double_chloro_genome,
-#    rotate_chloroplast
+localrules: all,
+    rotate_chloroplast,
+    dot_plot,
+    sub_sample,
+    extract_aligned_reads,
+    index_reference,
+    double_chloro_genome,
+    rotate_chloroplast
 
 # need internet access
 #   download_chloro_genome
@@ -41,7 +41,7 @@ wildcard_constraints:
 # and attempt assembly of chloroplast genome
 #
 samples = glob_wildcards("chloro_assembly/reads/{file}." + config["fast_file"]).file
-print(samples)
+#print(samples)
 
 rule all:
     input:
@@ -402,19 +402,19 @@ rule double_chloro_genome:
 #  data sources, you will need to comment out each line of this rule and manually download
 #  each reference genome of interest and save it so it is identical to 'output' below
 
-#from snakemake.remote.NCBI import RemoteProvider as NCBIRemoteProvider
-#NCBI = NCBIRemoteProvider(email=config["my_Email"]) # email required by NCBI to prevent abuse
-#rule download_chloro_genome:
-#    input:
-#        NCBI.remote(config["NCBI_reference_accession"] +".fasta", db="nuccore")
-#    output:
-#        "chloro_assembly/reference/" + config["NCBI_reference_accession"] + "_single.fasta"
-#    benchmark:
-#        "chloro_assembly/benchmark/download_chloro_genome/" + config["NCBI_reference_accession"] + "_benchmark.txt"
-#    shell:
-#        """
-#        mv {input} {output}
-#        """
+from snakemake.remote.NCBI import RemoteProvider as NCBIRemoteProvider
+NCBI = NCBIRemoteProvider(email=config["my_Email"]) # email required by NCBI to prevent abuse
+rule download_chloro_genome:
+    input:
+        NCBI.remote(config["NCBI_reference_accession"] +".fasta", db="nuccore")
+    output:
+        "chloro_assembly/reference/" + config["NCBI_reference_accession"] + "_single.fasta"
+    benchmark:
+        "chloro_assembly/benchmark/download_chloro_genome/" + config["NCBI_reference_accession"] + "_benchmark.txt"
+    shell:
+        """
+        mv {input} {output}
+        """
 
 
 
