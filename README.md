@@ -23,6 +23,8 @@ d) mamba install snakemake biopython
 
 e) snakemake -j 1 --conda-create-envs-only --use-conda (optional - create all conda environments for the pipeline)
 
+f) If outside network access is problematic, run downloadReference.sh to download the reference genome.
+
 .###
 
 #####Still need to fix the yml file situation; try have one yml file for each rule in Snakefile#####
