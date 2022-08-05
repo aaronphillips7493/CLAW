@@ -19,9 +19,9 @@ b) conda activate snakemake
 
 c) conda install mamba
 
-d) mamba install snakemake
+d) mamba install snakemake biopython
 
-e) mamba install biopython
+e) snakemake -j 1 --conda-create-envs-only --use-conda (optional - create all conda environments for the pipeline)
 
 .###
 
