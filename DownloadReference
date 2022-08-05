@@ -1,0 +1,32 @@
+import json
+configfile: "config.yml"
+
+shell.executable("/bin/bash")
+shell.prefix("set -euo pipefail; ")
+
+##########
+# avoid recursion loop
+wildcard_constraints:
+    sample="[^/]+",
+    
+##########
+# Download reference chloroplast genome
+#  This genome is used to find chloroplast genomes within your read set
+#  Need to install BioPython before this rule runs --> installed as part of Snakemake env.
+#  If the computer or remote HPC you are working from has restricted access to external
+#  data sources, you will need to comment out each line of this rule and manually download
+#  each reference genome of interest and save it so it is identical to 'output' below
+
+from snakemake.remote.NCBI import RemoteProvider as NCBIRemoteProvider
+NCBI = NCBIRemoteProvider(email=config["my_Email"]) # email required by NCBI to prevent abuse
+rule download_chloro_genome:
+    input:
+        NCBI.remote(config["NCBI_reference_accession"] +".fasta", db="nuccore")
+    output:
+        "chloro_assembly/reference/" + config["NCBI_reference_accession"] + "_single.fasta"
+    benchmark:
+        "chloro_assembly/benchmark/download_chloro_genome/" + config["NCBI_reference_accession"] + "_benchmark.txt"
+    shell:
+        """
+        mv {input} {output}
+        """
