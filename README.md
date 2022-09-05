@@ -52,13 +52,13 @@ Steps
 
 1. Test {The Workflow}. We provide a test read file containing ONT reads from _Oryza sativa_ ("chloro_assembly/reads/NC_008155.1_single.fasta") and the reference _Oryza sativa_ chloroplast genome ("chloro_assembly/reference/NC_008155.1_single.fasta").
 
-	a) cd long-read-chloroplast-assembly
-	
-	b) snakemake --profile profiles/slurm --use-conda --keep-going
+		snakemake --profile profiles/slurm --use-conda --keep-going
 	
 	#note: profiles/slurm may not be appropriate for your PC
 
-This test should complete with no errors, and should generate a rotated choloroplast fasta file ("chloro_assembly/{sample}~{assembler}\_chloroplast.fasta") derived from Flye and/or Unicycler. If outside network access is problematic, run downloadReference.sh to download the reference genome. Alternatively, download your reference genome of interest manually and save it into the directory "chloro_assembly/reference/{file_name}\_single.fasta"
+This test should complete with no errors, and should generate a rotated choloroplast fasta file ("chloro_assembly/{sample}~{assembler}\_chloroplast.fasta") derived from Flye and/or Unicycler. If outside network access is problematic, run downloadReference.sh to download the reference genome. Alternatively, download your reference genome of interest manually and save it into the directory 
+
+	"chloro_assembly/reference/{file_name}\_single.fasta"
 
 2. Run your samples through {The Workflow}.
 
