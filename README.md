@@ -11,7 +11,7 @@ https://github.com/aaronphillips7493/long-read-chloroplast-assembly
 Use conda:
 https://docs.conda.io/projects/conda/en/latest/user-guide/install/linux.html
 
-Make sure you have snakemake and Biopython installed:
+Make sure you have snakemake and Biopython installed. We use Mamba for increased speed:
 
 a) conda create --name snakemake
 
@@ -24,6 +24,7 @@ d) mamba install snakemake biopython
 e) snakemake -j 1 --conda-create-envs-only --use-conda (optional - create all conda environments for the pipeline)
 
 f) If outside network access is problematic, run downloadReference.sh to download the reference genome.
+	Alternatively, download your reference genome of interest and save it into the directory "chloro_assembly/reference/{file_name}\_single.fasta"
 
 .###
 
