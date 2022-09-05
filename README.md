@@ -2,29 +2,49 @@
 
 How to use Snakemake workflow: long-read-chloroplast-assembly
 Found at:
+
 https://github.com/aaronphillips7493/long-read-chloroplast-assembly
 
 .###
 
-.###
+Download and Install
 
-Use conda:
+1. Clone Git repository:
+	git clone https://github.com/aaronphillips7493/long-read-chloroplast-assembly
+
+2. Move into the directory:
+	cd long-read-chloroplast-assembly
+
+3. Install conda (if not already present):
+
 https://docs.conda.io/projects/conda/en/latest/user-guide/install/linux.html
 
-Make sure you have snakemake and Biopython installed. We use Mamba for increased speed:
+4. Make sure you have snakemake and Biopython installed. We use Mamba for increased speed:
 
-a) conda create --name snakemake
+	a) Create a conda environment:
 
-b) conda activate snakemake
+		conda create --name snakemake
 
-c) conda install mamba
+	b) Activate the conda environment:
 
-d) mamba install snakemake biopython
+		conda activate snakemake
 
-e) snakemake -j 1 --conda-create-envs-only --use-conda (optional - create all conda environments for the pipeline)
+	c) Install mamba in the environment:
+
+		conda install mamba
+
+	d) Install snakemake and biopython in the environment:
+
+		mamba install snakemake biopython
+
+	e) OPTIONAL: create all environments needed for {The Workflow}:
+
+		snakemake -j 1 --conda-create-envs-only --use-conda
 
 .###
+
 Steps
+
 .###
 
 1. Install {The Workflow}:
