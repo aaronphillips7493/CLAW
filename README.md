@@ -1,7 +1,6 @@
 .###
 
-How to use Snakemake workflow: long-read-chloroplast-assembly
-Found at:
+How to use {The Workflow} found at:
 
 https://github.com/aaronphillips7493/long-read-chloroplast-assembly
 
