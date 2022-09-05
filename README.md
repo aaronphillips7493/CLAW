@@ -10,9 +10,11 @@ https://github.com/aaronphillips7493/long-read-chloroplast-assembly
 Download and Install
 
 1. Clone Git repository:
+	
 	git clone https://github.com/aaronphillips7493/long-read-chloroplast-assembly
 
 2. Move into the directory:
+	
 	cd long-read-chloroplast-assembly
 
 3. Install conda (if not already present):
