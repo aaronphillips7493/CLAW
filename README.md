@@ -15,7 +15,7 @@ Download and Install
 
 2. Move into the directory:
 	
-	cd long-read-chloroplast-assembly
+		cd long-read-chloroplast-assembly
 
 3. Install conda (if not already present):
 
