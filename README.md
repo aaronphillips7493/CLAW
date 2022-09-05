@@ -96,13 +96,13 @@ This test should complete with no errors, and should generate a rotated cholorop
 		
 3. If {The Workflow} fails, try modifying "randSeed" and/or "numberReads" in config.yml. You will need to delete the files in the following directories to re-run {The Workflow}:
 
-	chloro_assembly/assemblies
+		chloro_assembly/assemblies
 	
-	chloro_assembly/subReads
+		chloro_assembly/subReads
 	
-	chloro_assembly/alignments
+		chloro_assembly/alignments
 	
-	chloro_assembly/dotPlots
+		chloro_assembly/dotPlots
 
 You may also need to delete the file:
 
