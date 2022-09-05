@@ -47,10 +47,8 @@ Steps
 
 .###
 
-1. Install {The Workflow}:
-	git clone https://github.com/aaronphillips7493/long-read-chloroplast-assembly
 
-2. Test {The Workflow}. We provide a test read file containing ONT reads from _Oryza sativa_ ("chloro_assembly/reads/NC_008155.1_single.fasta") and the reference _Oryza sativa_ chloroplast genome ("chloro_assembly/reference/NC_008155.1_single.fasta").
+1. Test {The Workflow}. We provide a test read file containing ONT reads from _Oryza sativa_ ("chloro_assembly/reads/NC_008155.1_single.fasta") and the reference _Oryza sativa_ chloroplast genome ("chloro_assembly/reference/NC_008155.1_single.fasta").
 
 	a) cd long-read-chloroplast-assembly
 	
@@ -60,11 +58,11 @@ Steps
 
 This test should complete with no errors, and should generate a rotated choloroplast fasta file ("chloro_assembly/{sample}~{assembler}\_chloroplast.fasta") derived from Flye and/or Unicycler. If outside network access is problematic, run downloadReference.sh to download the reference genome. Alternatively, download your reference genome of interest manually and save it into the directory "chloro_assembly/reference/{file_name}\_single.fasta"
 
-3. Run your samples through {The Workflow}.
+2. Run your samples through {The Workflow}.
 
 	a) modify "config.yml":
 	
-		i) NCBI_reference_accession = change this to the NCBI accession number for the reference chloroplast genome of interest. Default = NC_008155.1 (O. sativa). If outside network access is problematic, run downloadReference.sh to download the reference genome. Alternatively, download your reference genome of interest manually and save it into the directory "chloro_assembly/reference/{file_name}\_single.fasta"
+		i) NCBI_reference_accession = change this to the NCBI accession number for the reference chloroplast genome of interest. Default = NC_008155.1 (O. sativa). If outside network access is problematic, run downloadReference.sh to download the reference genome. Alternatively, download your reference genome of interest manually and save it into the directory "chloro_assembly/reference/{file_name}\_single.fasta". Make sure to change this parameter even if you do not use {The Workflow} to download the reference genome.
 		
 		ii) my_Email = provide an email address. Neccessary for the automated download of genomes from NCBI - prevents system abuse.
 		
@@ -95,3 +93,14 @@ This test should complete with no errors, and should generate a rotated cholorop
 	d) run {The Workflow}:
 		
 		snakemake --profile profiles/slurm --use-conda --keep-going
+		
+3. If {The Workflow} fails, try modifying "randSeed" and/or "numberReads" in config.yml. You will need to delete the files in the following directories to re-run {The Workflow}:
+
+	chloro_assembly/assemblies
+	chloro_assembly/subReads
+	chloro_assembly/alignments
+	chloro_assembly/dotPlots
+
+You may also need to delete the file:
+
+	chloro_assembly/{sample}~{assembler}\_chloroplast.fasta
