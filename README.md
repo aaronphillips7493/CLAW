@@ -23,65 +23,34 @@ d) mamba install snakemake biopython
 
 e) snakemake -j 1 --conda-create-envs-only --use-conda (optional - create all conda environments for the pipeline)
 
-f) If outside network access is problematic, run downloadReference.sh to download the reference genome.
-	Alternatively, download your reference genome of interest and save it into the directory "chloro_assembly/reference/{file_name}\_single.fasta"
-
-.###
-
-#####Still need to fix the yml file situation; try have one yml file for each rule in Snakefile#####
-
-#####Still need to find a better way of selecting PacBio or ONT mapping options for read mapping#####
-
-#####Still need to find a better way to enter sample names as the prefix#####
-
-#####Still need to find a better way to enter genome size#####
-  
 .###
 Steps
 .###
 
-1. Add your unique sample prefix(s) to the SAMPLES section of the Snakefile. 
+1. Install {The Workflow}:
+	git clone https://github.com/aaronphillips7493/long-read-chloroplast-assembly
 
-e.g. for me, I had long reads from four populations of O. australiensis, and the fastq read files were named as follows:
+2. Test {The Workflow}. We provide a test read file containing ONT reads from _Oryza sativa_ ("chloro_assembly/reads/NC_008155.1_single.fasta") and the reference _Oryza sativa_ chloroplast genome ("chloro_assembly/reference/NC_008155.1_single.fasta").
+	a) cd long-read-chloroplast-assembly
+	b) snakemake --profile profiles/slurm --use-conda --keep-going
+	#note: profiles/slurm may not be appropriate for your PC
+This test should complete with no errors, and should generate a rotated choloroplast fasta file ("chloro_assembly/{sample}~{assembler}\_chloroplast.fasta") derived from Flye and/or Unicycler. If outside network access is problematic, run downloadReference.sh to download the reference genome. Alternatively, download your reference genome of interest manually and save it into the directory "chloro_assembly/reference/{file_name}\_single.fasta"
 
-Oaustraliensis-300131-flowcell-1-SQK-LSK109_guppy303_all.fastq,
-
-Oaustraliensis-keepriver-flowcell-2-SQK-LSK109_guppy303_all.fastq,
-
-Oaustraliensis_keepriver_1g_SQK-LSK109_guppy303_all.fastq,
-
-etc...
-
-So, to the SAMPLES section, I add:
-
-"Oaustraliensis-300131-flowcell-1-SQK-LSK109",
-
-"Oaustraliensis-keepriver-flowcell-2-SQK-LSK109",
-
-"Oaustraliensis_keepriver_1g_SQK-LSK109",
-
-etc...  
-
-2. The first step of the pipeline converts a guppy base-called fastq file with the suffix *_guppy303_all.fastq to a fastq.gz file. 
-Have your ONT long read fastq file saved in a directory called backup/{prefix}/, where prefix is the prefix you saved to the SAMPLES list.  
-
-If you already have your ONT long reads saved as *_guppy303_all.fastq.gz, move them to a directory called working_raw_base_calls 
-(need to make pipeline amenable to PacBio reads too; need to make the SAMPLES bit more general [no need to add your own prefix to SAMPLES] and remove the "*_guppy303_all.fastq" thing)
-
-3. find your chloroplast genome(s) of interest in NCBI and add their NCBI accession numbers to NCBI.remote() in the rule "download_chloro_genome"
-
-e.g. NCBI.remote("NC_041421.1", db="nuccore")
-
-###I dont't know if this will work for multiple reference genomes yet###
-
-4. Adjust:
-	in rule minimap2_plastid: select ONT or PacBio reads (map-ont for ONT or map-pb for PacBio) (((Need to automate this process))) 
-	in rule raw_flye_chloro_assembly: select PacBio as input; set --genome-size and --threads as necessary 
-
-5. Adjust the {asm} and {overlap} wild cards under the rule all section of the Snakefile as required; 
-if you have three asm values set (e.g. asm=["50","100","300"]) and two overlap values (e.g.overlap=["5000","10000"]) Flye will make 6 (2*3) assemblies.
-
-6. Run snakemake on Snakefile_210510
-e.g. snakemake --use-conda --profile profiles/slurm -s Snakefile_210510
-
-7. scream into the void as somethign inevitably goes wrong.
+3. Run your samples through {The Workflow}.
+	a) modify "config.yml":
+		i) NCBI_reference_accession = change this to the NCBI accession number for the reference chloroplast genome of interest. Default = NC_008155.1 (O. sativa). If outside network access is problematic, run downloadReference.sh to download the reference genome. Alternatively, download your reference genome of interest manually and save it into the directory "chloro_assembly/reference/{file_name}\_single.fasta"
+		ii) my_Email = provide an email address. Neccessary for the automated download of genomes from NCBI - prevents system abuse.
+		iii) fast_file = declare whether your read file is in FASTA ("fasta"/"fasta.gz") or FASTQ ("fastq"/"fastq.gz") format.
+		iv) randseed = you can supply a seed (integer) here if you wish to re-run read extraction the same way with each redo, or leave this blank to let {The Workflow} randomly generate a seed each time it is run. Change this parameter if assembly fails, and re-run random read subsampling.
+		v) numberReads = declare the max. number of reads {The Workflow} will subsample. Change value if assembly fails or to increase or decrease genome coverage. Default = 3000.
+		vi) readMinLength = declare the smallest read to be used in the assembly. Default = 5000 bp.
+		vii) flyeParameter = tell Flye what kind of reads you are using as input (raw, corrected or HQ ONT long reads, or raw, corrected, or HIFI PacBio long reads). Default = --nano-raw.
+		viii) minimap2Parameter = tell minimap2 what kinds of reads you are using (ONT, PacBio, or HIFI). Default = map-ont.
+		iX) chloroplastSize = the expected size of the chloroplast genome to be assembled. This is usually set as the size of the reference chloroplast genome. Default = 135000.
+		X) cpus = declare the number of CPUs to use. Default = 6.
+	b) make sure you have saved your reads in the directory:
+		chloro_assembly/reads
+	c) make sure you have saved your reference genome in the directory:
+		chloro_assembly/reference
+	d) run {The Workflow}:
+		snakemake --profile profiles/slurm --use-conda --keep-going
