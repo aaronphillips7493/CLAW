@@ -26,7 +26,7 @@ localrules: all,
 ##########
 # Generate random seed for subsampling reads
 import random
-RAND_SEED= config["randSeed"]
+RAND_SEED= config["rand_seed"]
 try: RAND_SEED
 except NameError: RAND_SEED = random.seed()
 
@@ -184,7 +184,7 @@ rule align_subset_to_assembly:
         "chloro_assembly/benchmark/align_subset_to_assembly/{sample}_{assembler}_benchmark.txt"
     shell:
         """
-        minimap2 -ax {config[minimap2Parameter]} -t {threads} {input.assembly} {input.fastFile} \
+        minimap2 -ax {config[minimap2_parameter]} -t {threads} {input.assembly} {input.fastFile} \
             | samtools view -b -F 4 -@ {threads} \
             > {output.bam}
         """
@@ -229,7 +229,7 @@ rule flye_assemble:
     shell:
         """
         mkdir -p chloro_assembly/assemblies/
-        flye --threads {threads} --genome-size {config[chloroplastSize]} -o {params.flye_assembly} {config[flyeParameter]} {input}
+        flye --threads {threads} --genome-size {config[chloroplast_size]} -o {params.flye_assembly} {config[flye_parameter]} {input}
         """
 
 ##########
@@ -279,7 +279,7 @@ rule align_subset_to_ref:
         "chloro_assembly/benchmark/align_subset_to_ref/{sample}_benchmark.txt"
     shell:
         """
-        minimap2 -ax {config[minimap2Parameter]} -t {threads} {input.reference} {input.fastFile} \
+        minimap2 -ax {config[minimap2_parameter]} -t {threads} {input.reference} {input.fastFile} \
             | samtools view -b -F 4 -@ {threads} \
             > {output.bam}
         """
@@ -303,7 +303,7 @@ rule sub_sample:
     shell:
         """
         echo {params.random_seed}
-        seqtk sample -s {params.random_seed} {input} {config[numberReads]} > {output}
+        seqtk sample -s {params.random_seed} {input} {config[number_reads]} > {output}
         """
 
 ##########
@@ -326,7 +326,7 @@ rule extract_aligned_reads:
         samtools view {input.bam} | cut -f1 | sort | uniq > {output.list}
         seqtk subseq {input.fastFile} {output.list} \
             | bioawk -c fastx \
-                'length($seq) > {config[readMinLength]} && length($seq) < {config[chloroplastSize]} \
+                'length($seq) > {config[read_min_length]} && length($seq) < {config[chloroplast_size]} \
                 {{print \">\"$name\"\\n\"$seq}}' > {output.fastFile}
         """
 
@@ -348,7 +348,7 @@ rule align:
         "chloro_assembly/benchmark/align/{sample}_benchmark.txt"
     shell:
         """
-        minimap2 -ax {config[minimap2Parameter]} -t {threads} {input.reference} {input.fastFile} \
+        minimap2 -ax {config[minimap2_parameter]} -t {threads} {input.reference} {input.fastFile} \
             | samtools view -b -F 4 -@ {threads} \
             | samtools sort -o {output.bam}
         """
@@ -403,7 +403,7 @@ rule double_chloro_genome:
 #  each reference genome of interest and save it so it is identical to 'output' below
 
 from snakemake.remote.NCBI import RemoteProvider as NCBIRemoteProvider
-NCBI = NCBIRemoteProvider(email=config["my_Email"]) # email required by NCBI to prevent abuse
+NCBI = NCBIRemoteProvider(email=config["my_email"]) # email required by NCBI to prevent abuse
 rule download_chloro_genome:
     input:
         NCBI.remote(config["NCBI_reference_accession"] +".fasta", db="nuccore")
