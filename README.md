@@ -1,8 +1,8 @@
 .###
 
-How to use {The Workflow} found at:
+How to use CLAW found at:
 
-https://github.com/aaronphillips7493/long-read-chloroplast-assembly
+https://github.com/aaronphillips7493/CLAW
 
 .###
 
@@ -10,7 +10,7 @@ Download and Install
 
 1. Clone Git repository:
 	
-	git clone https://github.com/aaronphillips7493/long-read-chloroplast-assembly
+	git clone https://github.com/aaronphillips7493/CLAW
 
 2. Move into the directory:
 	
@@ -38,7 +38,7 @@ https://docs.conda.io/projects/conda/en/latest/user-guide/install/linux.html
 
 		mamba install snakemake biopython
 
-	e) OPTIONAL: create all environments needed for {The Workflow}:
+	e) OPTIONAL: create all environments needed for CLAW:
 
 		snakemake -j 1 --conda-create-envs-only --use-conda
 
@@ -49,7 +49,7 @@ Steps
 .###
 
 
-1. Test {The Workflow}. We provide a test read file containing ONT reads from _Oryza sativa_ ("chloro_assembly/reads/NC_008155.1_single.fasta") and the reference _Oryza sativa_ chloroplast genome ("chloro_assembly/reference/NC_008155.1_single.fasta").
+1. Test CLAW. We provide a test read file containing ONT reads from _Oryza sativa_ ("chloro_assembly/reads/NC_008155.1_single.fasta") and the reference _Oryza sativa_ chloroplast genome ("chloro_assembly/reference/NC_008155.1_single.fasta").
 
 		snakemake --profile profiles/slurm --use-conda --keep-going
 	
@@ -59,19 +59,19 @@ This test should complete with no errors, and should generate a rotated cholorop
 
 	"chloro_assembly/reference/{file_name}\_single.fasta"
 
-2. Run your samples through {The Workflow}.
+2. Run your samples through CLAW.
 
 	a) modify "config.yml":
 	
-		i) NCBI_reference_accession = change this to the NCBI accession number for the reference chloroplast genome of interest. Default = NC_008155.1 (O. sativa). If outside network access is problematic, run downloadReference.sh to download the reference genome. Alternatively, download your reference genome of interest manually and save it into the directory "chloro_assembly/reference/{file_name}\_single.fasta". Make sure to change this parameter even if you do not use {The Workflow} to download the reference genome.
+		i) NCBI_reference_accession = change this to the NCBI accession number for the reference chloroplast genome of interest. Default = NC_008155.1 (O. sativa). If outside network access is problematic, run downloadReference.sh to download the reference genome. Alternatively, download your reference genome of interest manually and save it into the directory "chloro_assembly/reference/{file_name}\_single.fasta". Make sure to change this parameter even if you do not use CLAW to download the reference genome.
 		
 		ii) my_Email = provide an email address. Neccessary for the automated download of genomes from NCBI - prevents system abuse.
 		
 		iii) fast_file = declare whether your read file is in FASTA ("fasta"/"fasta.gz") or FASTQ ("fastq"/"fastq.gz") format.
 		
-		iv) randseed = you can supply a seed (integer) here if you wish to re-run read extraction the same way with each redo, or leave this blank to let {The Workflow} randomly generate a seed each time it is run. Change this parameter if assembly fails, and re-run random read subsampling.
+		iv) randseed = you can supply a seed (integer) here if you wish to re-run read extraction the same way with each redo, or leave this blank to let CLAW randomly generate a seed each time it is run. Change this parameter if assembly fails, and re-run random read subsampling.
 		
-		v) numberReads = declare the max. number of reads {The Workflow} will subsample. Change value if assembly fails or to increase or decrease genome coverage. Default = 3000.
+		v) numberReads = declare the max. number of reads CLAW will subsample. Change value if assembly fails or to increase or decrease genome coverage. Default = 3000.
 		
 		vi) readMinLength = declare the smallest read to be used in the assembly. Default = 5000 bp.
 		
