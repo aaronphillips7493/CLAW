@@ -63,6 +63,8 @@ rule rotate_chloroplast:
         genome = "chloro_assembly/assemblies/{sample}_{assembler}/assembly.fasta"
     output:
         "chloro_assembly/{sample}~{assembler}_chloroplast.fasta",
+    log:
+        "chloro_assembly/logs/rotate_chloroplast/{sample}_{assembler}.log"
     params:
         dir = "chloro_assembly/{sample}~{assembler}_tmp",
         name = "{sample}~{assembler}_chloroplast"
@@ -123,6 +125,8 @@ rule dot_plot:
         query = "chloro_assembly/{sample}~{assembler}_chloroplast.fasta"
     output:
         "chloro_assembly/dotPlots/{sample}_{assembler}.png"
+    log:
+        "chloro_assembly/logs/dot_plot/{sample}_{assembler}.log"
     params:
         "chloro_assembly/dotPlots/{sample}_{assembler}"
     conda:
@@ -146,6 +150,8 @@ rule bam_coverage_assembly:
         "chloro_assembly/alignments/{sample}_subset_vs_{assembler}_assembly_sorted.bam",
     output:
         bigwig = "chloro_assembly/alignments/{sample}_subset_vs_{assembler}_assembly_sorted.bw"
+    log:
+        "chloro_assembly/logs/bam_coverage_assembly/{sample}_{assembler}.log"
     conda:
         "envs/align.yml"
     benchmark:
@@ -160,6 +166,8 @@ rule sort_assembly_alignment:
         "chloro_assembly/alignments/{sample}_subset_vs_{assembler}_assembly.bam",
     output:
         bam = "chloro_assembly/alignments/{sample}_subset_vs_{assembler}_assembly_sorted.bam",
+    log:
+        "chloro_assembly/logs/sort_assembly_alignment/{sample}_{assembler}.log"
     conda:
         "envs/align.yml"
     benchmark:
@@ -176,6 +184,8 @@ rule align_subset_to_assembly:
         assembly = "chloro_assembly/assemblies/{sample}_{assembler}/assembly.fasta"
     output:
         bam = temp("chloro_assembly/alignments/{sample}_subset_vs_{assembler}_assembly.bam"),
+    log:
+        "chloro_assembly/logs/align_subset_to_assembly/{sample}_{assembler}.log"
     threads:
         config["cpus"]
     conda:
@@ -201,6 +211,8 @@ rule unicycler_assemble:
         assembly = "chloro_assembly/assemblies/{sample}_unicycler",
     output:
         "chloro_assembly/assemblies/{sample}_unicycler/assembly.fasta",
+    log:
+        "chloro_assembly/logs/unicycler_assemble/{sample}.log"
     threads:
         config["cpus"]
     conda:
@@ -220,6 +232,8 @@ rule flye_assemble:
         flye_assembly = "chloro_assembly/assemblies/{sample}_flye",
     output:
         "chloro_assembly/assemblies/{sample}_flye/assembly.fasta",
+    log:
+        "chloro_assembly/logs/flye_assemble/{sample}.log"
     threads:
         config["cpus"]
     conda:
@@ -241,6 +255,8 @@ rule bam_coverage_ref:
         "chloro_assembly/alignments/{sample}_subset_vs_ref_sorted.bam",
     output:
         bigwig = "chloro_assembly/alignments/{sample}_subset_vs_ref_sorted.bw"
+    log:
+        "chloro_assembly/logs/bam_coverage_ref/{sample}.log"
     conda:
         "envs/align.yml"
     benchmark:
@@ -255,6 +271,8 @@ rule sort_ref_alignment:
         "chloro_assembly/alignments/{sample}_subset_vs_ref.bam",
     output:
         bam = "chloro_assembly/alignments/{sample}_subset_vs_ref_sorted.bam",
+    log:
+        "chloro_assembly/logs/sort_ref_alignment/{sample}.log"
     conda:
         "envs/align.yml"
     benchmark:
@@ -271,6 +289,8 @@ rule align_subset_to_ref:
         reference = "chloro_assembly/reference/"+config["NCBI_reference_accession"]+"_circular.fasta"
     output:
         bam = "chloro_assembly/alignments/{sample}_subset_vs_ref.bam",
+    log:
+        "chloro_assembly/logs/align_subset_to_ref/{sample}.log"
     threads:
         config["cpus"]
     conda:
@@ -294,6 +314,8 @@ rule sub_sample:
         "chloro_assembly/subReads/{sample}~all.fasta"
     output:
         fastFile = "chloro_assembly/subReads/{sample}~assemble.fasta"
+    log:
+        "chloro_assembly/logs/sub_sample/{sample}.log"
     params:
         random_seed = RAND_SEED,
     conda:
@@ -317,6 +339,8 @@ rule extract_aligned_reads:
     output:
         list = "chloro_assembly/alignments/{sample}~all.lst",
         fastFile = "chloro_assembly/subReads/{sample}~all.fasta"
+    log:
+        "chloro_assembly/logs/extract_aligned_reads/{sample}.log"
     conda:
         "envs/extract_aligned_reads.yml"
     benchmark:
@@ -340,6 +364,8 @@ rule align:
         reference = "chloro_assembly/reference/"+config["NCBI_reference_accession"]+"_circular.fasta"
     output:
         bam = "chloro_assembly/alignments/{sample}.bam",
+    log:
+        "chloro_assembly/logs/align/{sample}.log"
     threads:
         config["cpus"]
     conda:
@@ -363,6 +389,8 @@ rule index_reference:
         "chloro_assembly/reference/"+config["NCBI_reference_accession"]+"_circular.fasta"
     output:
         "chloro_assembly/reference/"+config["NCBI_reference_accession"]+"_index.fasta"
+    log:
+        "chloro_assembly/logs/index_reference/{sample}.log"
     conda:
         "envs/index_reference.yml"
     benchmark:
@@ -384,6 +412,8 @@ rule double_chloro_genome:
         "chloro_assembly/reference/"+config["NCBI_reference_accession"]+"_single.fasta"
     output:
         "chloro_assembly/reference/"+config["NCBI_reference_accession"]+"_circular.fasta"
+    log:
+        "chloro_assembly/logs/double_chloro_genome/{sample}.log"
     benchmark:
         "chloro_assembly/benchmark/double_chloro_genome/"+config["NCBI_reference_accession"]+"_benchmark.txt"
     shell:
@@ -409,6 +439,8 @@ rule download_chloro_genome:
         NCBI.remote(config["NCBI_reference_accession"] +".fasta", db="nuccore")
     output:
         "chloro_assembly/reference/" + config["NCBI_reference_accession"] + "_single.fasta"
+    log:
+        "chloro_assembly/logs/download_chloro_genome/{sample}.log"
     benchmark:
         "chloro_assembly/benchmark/download_chloro_genome/" + config["NCBI_reference_accession"] + "_benchmark.txt"
     shell:
