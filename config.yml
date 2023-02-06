@@ -32,4 +32,4 @@ chloroplast_size: 135000  # estimate of chloroplast genome size; also used as th
 #chloroplastSizePC: 0.85     # If assembled genome <(chloroplastSize*chloroplastSizePC), will not pass.
 #chloroplastIdentityPC: 0.85 # If the identity (measured by DNADiff) of assembled genome to reference genome <chloroplastIdentityPC, will not pass
 
-cpus: 6 # Max CPUs to use in a job.
+cpus: 4 # Max CPUs to use in a job.
