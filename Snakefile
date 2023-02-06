@@ -45,7 +45,7 @@ samples = glob_wildcards("chloro_assembly/reads/{file}." + config["fast_file"]).
 
 rule all:
     input:
-        "chloro_assembly/reference/"+config["NCBI_reference_accession"]+"_index.fasta",
+        "chloro_assembly/reference/"+config["ncbi_reference_accession"]+"_index.fasta",
         expand("chloro_assembly/dotPlots/{sample}_{assembler}.png", sample=samples, assembler=config["assembler"],),
         expand("chloro_assembly/alignments/{sample}_subset_vs_{assembler}_assembly_sorted.bw", sample=samples, assembler=config["assembler"],),
         expand("chloro_assembly/alignments/{sample}_subset_vs_ref_sorted.bw", sample=samples,),
@@ -59,7 +59,7 @@ rule all:
 #
 rule rotate_chloroplast:
     input:
-        index = "chloro_assembly/reference/"+config["NCBI_reference_accession"]+"_index.fasta",
+        index = "chloro_assembly/reference/"+config["ncbi_reference_accession"]+"_index.fasta",
         genome = "chloro_assembly/assemblies/{sample}_{assembler}/assembly.fasta"
     output:
         "chloro_assembly/{sample}~{assembler}_chloroplast.fasta",
@@ -121,7 +121,7 @@ rule rotate_chloroplast:
 # add to conda config - conda install -c bioconda gnuplot
 rule dot_plot:
     input:
-        reference = "chloro_assembly/reference/"+config["NCBI_reference_accession"]+"_single.fasta",
+        reference = "chloro_assembly/reference/"+config["ncbi_reference_accession"]+"_single.fasta",
         query = "chloro_assembly/{sample}~{assembler}_chloroplast.fasta"
     output:
         "chloro_assembly/dotPlots/{sample}_{assembler}.png"
@@ -286,7 +286,7 @@ rule sort_ref_alignment:
 rule align_subset_to_ref:
     input:
         fastFile = "chloro_assembly/subReads/{sample}~assemble.fasta",
-        reference = "chloro_assembly/reference/"+config["NCBI_reference_accession"]+"_circular.fasta"
+        reference = "chloro_assembly/reference/"+config["ncbi_reference_accession"]+"_circular.fasta"
     output:
         bam = "chloro_assembly/alignments/{sample}_subset_vs_ref.bam",
     log:
@@ -361,7 +361,7 @@ rule extract_aligned_reads:
 rule align:
     input:
         fastFile = "chloro_assembly/reads/{sample}." + config["fast_file"],
-        reference = "chloro_assembly/reference/"+config["NCBI_reference_accession"]+"_circular.fasta"
+        reference = "chloro_assembly/reference/"+config["ncbi_reference_accession"]+"_circular.fasta"
     output:
         bam = "chloro_assembly/alignments/{sample}.bam",
     log:
@@ -386,15 +386,15 @@ rule align:
 #
 rule index_reference:
     input:
-        "chloro_assembly/reference/"+config["NCBI_reference_accession"]+"_circular.fasta"
+        "chloro_assembly/reference/"+config["ncbi_reference_accession"]+"_circular.fasta"
     output:
-        "chloro_assembly/reference/"+config["NCBI_reference_accession"]+"_index.fasta"
+        "chloro_assembly/reference/"+config["ncbi_reference_accession"]+"_index.fasta"
     log:
-        "chloro_assembly/logs/index_reference/{sample}.log"
+        "chloro_assembly/logs/index_reference/"+config["ncbi_reference_accession"]+".log"
     conda:
         "envs/index_reference.yml"
     benchmark:
-        "chloro_assembly/benchmark/index_reference/"+config["NCBI_reference_accession"]+"_benchmark.txt"
+        "chloro_assembly/benchmark/index_reference/"+config["ncbi_reference_accession"]+"_benchmark.txt"
     shell:
         """
         awk 'NR == 1 {{print substr($1,2,length($1)), \"0\", \"10000\"}}' {input} > chloro_assembly/reference/index.bed
@@ -409,13 +409,13 @@ rule index_reference:
 #
 rule double_chloro_genome:
     input:
-        "chloro_assembly/reference/"+config["NCBI_reference_accession"]+"_single.fasta"
+        "chloro_assembly/reference/"+config["ncbi_reference_accession"]+"_single.fasta"
     output:
-        "chloro_assembly/reference/"+config["NCBI_reference_accession"]+"_circular.fasta"
+        "chloro_assembly/reference/"+config["ncbi_reference_accession"]+"_circular.fasta"
     log:
-        "chloro_assembly/logs/double_chloro_genome/{sample}.log"
+        "chloro_assembly/logs/double_chloro_genome/"+config["ncbi_reference_accession"]+".log"
     benchmark:
-        "chloro_assembly/benchmark/double_chloro_genome/"+config["NCBI_reference_accession"]+"_benchmark.txt"
+        "chloro_assembly/benchmark/double_chloro_genome/"+config["ncbi_reference_accession"]+"_benchmark.txt"
     shell:
         """
         head -n 1 {input} > {output}
@@ -436,13 +436,13 @@ from snakemake.remote.NCBI import RemoteProvider as NCBIRemoteProvider
 NCBI = NCBIRemoteProvider(email=config["my_email"]) # email required by NCBI to prevent abuse
 rule download_chloro_genome:
     input:
-        NCBI.remote(config["NCBI_reference_accession"] +".fasta", db="nuccore")
+        NCBI.remote(config["ncbi_reference_accession"] +".fasta", db="nuccore")
     output:
-        "chloro_assembly/reference/" + config["NCBI_reference_accession"] + "_single.fasta"
+        "chloro_assembly/reference/" + config["ncbi_reference_accession"] + "_single.fasta"
     log:
-        "chloro_assembly/logs/download_chloro_genome/{sample}.log"
+        "chloro_assembly/logs/download_chloro_genome/"+config["ncbi_reference_accession"]+".log"
     benchmark:
-        "chloro_assembly/benchmark/download_chloro_genome/" + config["NCBI_reference_accession"] + "_benchmark.txt"
+        "chloro_assembly/benchmark/download_chloro_genome/" + config["ncbi_reference_accession"] + "_benchmark.txt"
     shell:
         """
         mv {input} {output}
