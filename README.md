@@ -81,7 +81,7 @@ This test should complete with no errors, and should generate a rotated cholorop
 		
 		iX) chloroplastSize = the expected size of the chloroplast genome to be assembled. This is usually set as the size of the reference chloroplast genome. Default = 135000.
 		
-		X) cpus = declare the number of CPUs to use. Default = 6.
+		X) cpus = declare the number of CPUs to use. Default = 4.
 		
 	b) make sure you have saved your reads in the directory:
 		
