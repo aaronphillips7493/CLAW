@@ -49,7 +49,7 @@ https://docs.conda.io/projects/conda/en/latest/user-guide/install/linux.html
 Steps
 ---------------------------------------------------------
 
-1. Test CLAW. We provide a test read file containing ONT reads from _Oryza sativa_ ("chloro_assembly/reads/NC_008155.1_single.fasta") and the reference _Oryza sativa_ chloroplast genome ("chloro_assembly/reference/NC_008155.1_single.fasta").
+1. Test CLAW. We provide a test read file containing ONT reads from _Oryza sativa_ ("chloro_assembly/reads/DRR196880_subset.fastq") and the reference _Oryza sativa_ chloroplast genome ("chloro_assembly/reference/NC_008155.1_single.fasta").
 
 		snakemake --profile profiles/slurm --use-conda --keep-going
 	
