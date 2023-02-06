@@ -63,7 +63,7 @@ This test should complete with no errors, and should generate a rotated cholorop
 
 	a) modify "config.yml":
 	
-		i) NCBI_reference_accession = change this to the NCBI accession number for the reference chloroplast genome of interest. Default = NC_008155.1 (O. sativa). If outside network access is problematic, run downloadReference.sh to download the reference genome. Alternatively, download your reference genome of interest manually and save it into the directory "chloro_assembly/reference/{file_name}\_single.fasta". Make sure to change this parameter even if you do not use CLAW to download the reference genome.
+		i) ncbi_reference_accession = change this to the NCBI accession number for the reference chloroplast genome of interest. Default = NC_008155.1 (O. sativa). If outside network access is problematic, run downloadReference.sh to download the reference genome. Alternatively, download your reference genome of interest manually and save it into the directory "chloro_assembly/reference/{file_name}\_single.fasta". Make sure to change this parameter even if you do not use CLAW to download the reference genome.
 		
 		ii) my_Email = provide an email address. Neccessary for the automated download of genomes from NCBI - prevents system abuse.
 		
