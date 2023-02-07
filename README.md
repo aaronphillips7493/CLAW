@@ -108,3 +108,10 @@ This test should complete with no errors, and should generate a rotated cholorop
 You may also need to delete the file:
 
 	chloro_assembly/{sample}~{assembler}\_chloroplast.fasta
+
+---------------------------------------------------------
+
+Note
+---------------------------------------------------------
+
+While we report on the successful runs of CLAW here, there were several instances in which CLAW failed to complete or when chloroplast genome assembly failed. Typically, CLAW failed to complete due to insufficient memory allocation for certain steps of CLAW. These steps were commonly the read mapping and genome assembly steps. In this case, we were able to overcome this issue by modifying the memory allocation in the “cluster-configs/default.yaml” file. Future releases should aim to integrate dynamic memory allocations to further minimise user input for the successful completion of CLAW. When genome assembly failed, we found that re-running CLAW with a different seed (randomly generated as part of the CLAW, unless specified by the user in “config.yaml”) resulted in successful completion of genome assembly. We also found it necessary to, on occasion, adjust the number of chloroplast reads used for genome assembly as too many reads (and therefore too high genome coverage) could cause the assemblers to fail. Thus, by modifying the random seed and the number of reads used for assembly we were able to generate assemblies for all 19 test datasets. 
