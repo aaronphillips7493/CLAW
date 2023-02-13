@@ -51,6 +51,13 @@ rule all:
         expand("chloro_assembly/alignments/{sample}_subset_vs_ref_sorted.bw", sample=samples,),
         #expand("chloro_assembly/{sample}~chloroplast.fasta", sample=samples)
 
+rule test:
+    input:
+        "chloro_assembly/reference/NC_008155.1_index.fasta",
+        expand("chloro_assembly/dotPlots/DRR196880_subset_{assembler}.png", assembler=["flye", "unicycler"],),
+        expand("chloro_assembly/alignments/DRR196880_subset_subset_vs_{assembler}_assembly_sorted.bw", assembler=["flye", "unicycler"],),
+        expand("chloro_assembly/alignments/DRR196880_subset_subset_vs_ref_sorted.bw",),
+
 ##########
 # We have a chloroplast genome.
 # Now we want to "rotate" our assemblies such that the linear sequence
