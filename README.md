@@ -1,3 +1,4 @@
+![CLAW](https://github.com/aaronphillips7493/CLAW/blob/main/profiles/CLAW_icon.png?raw=true)
 ---------------------------------------------------------
 
 About CLAW
