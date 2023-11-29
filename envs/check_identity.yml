@@ -1,6 +1,6 @@
 channels:
- - bioconda
  - conda-forge
- - defaults
+ - bioconda
+ - defaults
 dependencies:
  - mummer=3.23
