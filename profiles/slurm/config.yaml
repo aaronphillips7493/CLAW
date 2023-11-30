@@ -17,7 +17,7 @@ local-cores:
 jobs:
   100
 cluster-config:
- - "cluster-configs/default.yaml"
+ - "cluster-configs/slurm.yaml"
 keep-going:
   true
 use-conda:
