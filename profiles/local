@@ -1,8 +1,0 @@
-cores:
-  4
-use-conda:
-  true
-conda-frontend:
-  "mamba"
-keep-going:
-  true
