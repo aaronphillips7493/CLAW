@@ -18,6 +18,7 @@ jobs:
   100
 cluster-config:
  - "cluster-configs/default.yaml"
+ - "cluster-configs/phoenix.yaml"
 keep-going:
   true
 use-conda:
