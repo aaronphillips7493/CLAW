@@ -6,8 +6,8 @@ __default__ :
         mem           : "200M"
         time          : "00-00:5:00"
         gres          : null
-        account       : null
-        partition     : null
+        account       : 
+        partition     : 
         nodes         : 1
 
 # Override the above defaults with job specific values
