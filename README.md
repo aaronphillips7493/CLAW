@@ -58,7 +58,7 @@ Steps
 
 This test should complete with no errors, and should generate a rotated choloroplast fasta file ("chloro_assembly/{sample}~{assembler}\_chloroplast.fasta") derived from Flye and/or Unicycler. If outside network access is problematic, run downloadReference.sh to download the reference genome. Alternatively, download your reference genome of interest manually and save it into the directory 
 
-	"chloro_assembly/reference/{file_name}\_single.fasta"
+	"chloro_assembly/reference/{NCBI_accession_number}_single.fasta"
 
 2. Run your samples through CLAW.
 
@@ -95,8 +95,10 @@ This test should complete with no errors, and should generate a rotated cholorop
 	d) run {The Workflow}:
 		
 		snakemake --profile profiles/slurm --use-conda --keep-going
+
+#note: remember to specify the correct profile based on our system!
 		
-3. If {The Workflow} fails, try modifying "randSeed" and/or "numberReads" in config.yml. You will need to delete the files in the following directories to re-run {The Workflow}:
+4. If {The Workflow} fails, try modifying "randSeed" and/or "numberReads" in config.yml. You will need to delete the files in the following directories to re-run {The Workflow}:
 
 		chloro_assembly/assemblies
 	
@@ -108,7 +110,7 @@ This test should complete with no errors, and should generate a rotated cholorop
 
 You may also need to delete the file:
 
-	chloro_assembly/{sample}~{assembler}\_chloroplast.fasta
+	chloro_assembly/{sample}~{assembler}_chloroplast.fasta
 
 ---------------------------------------------------------
 
