@@ -92,11 +92,9 @@ This test should complete with no errors, and should generate a rotated cholorop
 		
 		chloro_assembly/reference
 		
-	d) run {The Workflow}:
+	d) run CLAW (remember to specify the correct profile based on our system!):
 		
 		snakemake --profile profiles/slurm --use-conda --keep-going
-
-#note: remember to specify the correct profile based on our system!
 		
 4. If {The Workflow} fails, try modifying "randSeed" and/or "numberReads" in config.yml. You will need to delete the files in the following directories to re-run {The Workflow}:
 
