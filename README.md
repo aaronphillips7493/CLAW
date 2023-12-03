@@ -54,9 +54,7 @@ Steps
 
 		snakemake --profile profiles/slurm --use-conda --keep-going
 	
-	#note: profiles/slurm may not be appropriate for your PC. If this is the case run CLAW with the following, adjusting the number of cores available to CLAW accordingly:
-
-		snakemake --cores 4 --use-conda --keep-going
+	#note: profiles/slurm may not be appropriate for your PC. If this is the case, please run CLAW after specifying your profile (slurm, pbs, or local). 
 
 This test should complete with no errors, and should generate a rotated choloroplast fasta file ("chloro_assembly/{sample}~{assembler}\_chloroplast.fasta") derived from Flye and/or Unicycler. If outside network access is problematic, run downloadReference.sh to download the reference genome. Alternatively, download your reference genome of interest manually and save it into the directory 
 
