@@ -115,7 +115,7 @@ You may also need to delete the file:
 Notes
 ---------------------------------------------------------
 
-User can check read mapping and/or coverage of the genomes (whether that be to the single or 'circular' reference genome, or to the CLAW-assembled genome) by loading the genome of interest and its associated BAM/BigWig files into any genome browser (e.g., IGV). Read depth may help you diagnose issues in your assembly, if you have any.
+Users can check read mapping and/or coverage of the genomes (whether that be to the single or 'circular' reference genome, or to the CLAW-assembled genome) by loading the genome of interest and its associated BAM/BigWig files into any genome browser (e.g., IGV). Read depth may help you diagnose issues in your assembly, if you have any.
 
 While the read library used for chloroplast genome assembly is enriched for chloroplast reads, there is a possibility that the library will also contain mitochondrial reads because of high sequence similarity between mitochondrial and chloroplast genomes. Thus, it is possible for CLAW to assemble mitochondrial (likely fragmented) contigs too. CLAW makes no attempt to resolve this, so users will have to manually check the assembled contigs for similarity to chloroplast and/or mitochondrial sequences.
 
