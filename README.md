@@ -23,6 +23,16 @@ Download and Install
 
 https://docs.conda.io/projects/conda/en/latest/user-guide/install/linux.html
 
+You may need to add the approproate channels for accessing CLAW dependencies:
+
+```
+conda config --add channels conda-forge
+```
+
+```
+conda config --add channels bioconda 
+```
+ 
 4. Make sure you have snakemake and Biopython installed. We use Mamba for increased speed:
 
 	a) Create a conda environment:
