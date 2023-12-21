@@ -90,9 +90,9 @@ This test should complete with no errors, and should generate a rotated cholorop
 		
 		viii) minimap2Parameter = tell minimap2 what kinds of reads you are using (ONT, PacBio, or HIFI). Default = map-ont.
 
-                iX) read_quality = mapq read quality score; if users want more stringent read filtering (i.e., reads with higher mapping quality) they can increase this number (e.g., 10 = 90%; 20 = 99%).
+		iX) read_quality = mapq read quality score; if users want more stringent read filtering (i.e., reads with higher mapping quality) they can increase this number (e.g., 10 = 90%; 20 = 99%).
 		
-                X) chloroplastSize = the expected size of the chloroplast genome to be assembled. This is usually set as the size of the reference chloroplast genome. Default = 135000.
+		X) chloroplastSize = the expected size of the chloroplast genome to be assembled. This is usually set as the size of the reference chloroplast genome. Default = 135000.
 		
 		Xi) cpus = declare the number of CPUs to use. Default = 4.
 		
