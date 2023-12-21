@@ -382,7 +382,7 @@ rule align:
     shell:
         """
         minimap2 -ax {config[minimap2_parameter]} -t {threads} {input.reference} {input.fastFile} \
-            | samtools view -b -F 4 -@ {threads} \
+            | samtools view -q {config[read_quality]} -b -F 4 -@ {threads} \
             | samtools sort -o {output.bam}
         """
 
