@@ -89,10 +89,12 @@ This test should complete with no errors, and should generate a rotated cholorop
 		vii) flyeParameter = tell Flye what kind of reads you are using as input (raw, corrected or HQ ONT long reads, or raw, corrected, or HIFI PacBio long reads). Default = --nano-raw.
 		
 		viii) minimap2Parameter = tell minimap2 what kinds of reads you are using (ONT, PacBio, or HIFI). Default = map-ont.
+
+                iX) read_quality = mapq read quality score; if users want more stringent read filtering (i.e., reads with higher mapping quality) they can increase this number (e.g., 10 = 90%; 20 = 99%).
 		
-		iX) chloroplastSize = the expected size of the chloroplast genome to be assembled. This is usually set as the size of the reference chloroplast genome. Default = 135000.
+                X) chloroplastSize = the expected size of the chloroplast genome to be assembled. This is usually set as the size of the reference chloroplast genome. Default = 135000.
 		
-		X) cpus = declare the number of CPUs to use. Default = 4.
+		Xi) cpus = declare the number of CPUs to use. Default = 4.
 		
 	b) make sure you have saved your reads in the directory:
 		
@@ -106,7 +108,7 @@ This test should complete with no errors, and should generate a rotated cholorop
 		
 		snakemake --profile profiles/slurm --use-conda --keep-going
 		
-3. If {The Workflow} fails, try modifying "randSeed" and/or "numberReads" in config.yml. You will need to delete the files in the following directories to re-run {The Workflow}:
+4. If {The Workflow} fails, try modifying "randSeed" and/or "numberReads" in config.yml. You will need to delete the files in the following directories to re-run {The Workflow}:
 
 		chloro_assembly/assemblies
 	
