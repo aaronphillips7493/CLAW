@@ -25,6 +25,8 @@ minimap2_parameter: map-ont
     # map-ont  = ONT long reads 
     # map-hifi = PacBio HiFi reads
 
+read_quality: 1
+    # minimum PHRED-based quality score for read alignment
 
 chloroplast_size: 135000  # estimate of chloroplast genome size; also used as the upper limit of read length
 
